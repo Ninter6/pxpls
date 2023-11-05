@@ -1,0 +1,4 @@
+[submodule "nova"]
+	path = nova
+	url = git@github.com:Ninter6/nova.git
+	branch = phy-with-pxpls
