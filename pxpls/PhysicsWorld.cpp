@@ -21,12 +21,12 @@ void PhysicsWorld::RemoveObject(PhysicalObj* obj) {
 void PhysicsWorld::Update(float dt) const {
     for (auto obj : m_Objs) {
         if (!obj->HasRigidBody()) continue;
-        auto& rb = *obj->rigidbody();
+        auto& rb = obj->rigidbody();
         
-        rb.acceleration += gravity;
+        rb.acceleration.y -= gravity;
         
         rb.velocity += rb.acceleration * dt;
-        obj->transform.Position += rb.acceleration * dt;
+        obj->transform.Position += rb.velocity * dt;
         
         rb.acceleration = {0};
     }

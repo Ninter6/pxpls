@@ -660,9 +660,9 @@ template<class T>
 mat4 rotate(qua<T> q){
     const T a = q.w, b = q.x, c = q.y, d = q.z;
     float mv[] = {
-        a*a + b*b - c*c - d*d, 2*a*d - 2*b*c, -(2*a*c + 2*b*d), 0,
-        -(2*b*c + 2*a*d), a*a - b*b + c*c - d*d, 2*c*d - 2*a*b, 0,
-        2*a*c - 2*b*d, 2*a*b + 2*c*d, a*a - b*b - c*c + d*d, 0,
+        1 - 2*c*c - 2*d*d, 2*b*c + 2*a*d, 2*b*d - 2*a*c, 0,
+        2*b*c - 2*a*d, 1 - 2*b*b - 2*d*d, 2*a*b + 2*c*d, 0,
+        2*a*c + 2*b*d, 2*c*d - 2*a*b, 1 - 2*b*b - 2*c*c, 0,
         0, 0, 0, 1
     };
     return mat4(mv);
@@ -1721,9 +1721,9 @@ template<class T>
 mat4 rotate(qua<T> q){
     const T a = q.w, b = q.x, c = q.y, d = q.z;
     float mv[] = {
-        a*a + b*b - c*c - d*d, 2*a*d - 2*b*c, -(2*a*c + 2*b*d), 0,
-        -(2*b*c + 2*a*d), a*a - b*b + c*c - d*d, 2*c*d - 2*a*b, 0,
-        2*a*c - 2*b*d, 2*a*b + 2*c*d, a*a - b*b - c*c + d*d, 0,
+        1 - 2*c*c - 2*d*d, 2*b*c + 2*a*d, 2*b*d - 2*a*c, 0,
+        2*b*c - 2*a*d, 1 - 2*b*b - 2*d*d, 2*a*b + 2*c*d, 0,
+        2*a*c + 2*b*d, 2*c*d - 2*a*b, 1 - 2*b*b - 2*c*c, 0,
         0, 0, 0, 1
     };
     return mat4(mv);

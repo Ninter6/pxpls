@@ -27,6 +27,7 @@ struct PlaneCollider;
 
 struct Collider {
     Collider() = default;
+    virtual ~Collider() = default;
     
     virtual CollisionPoints TestCollision(const TransForm& transform, const Collider& collider, const TransForm& colliderTransForm) const = 0;
     

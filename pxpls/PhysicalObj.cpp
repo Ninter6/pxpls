@@ -11,22 +11,32 @@
 
 namespace pxpls {
 
-bool PhysicalObj::HasCollider() {
+//PhysicalObj::PhysicalObj(const PhysicalObj& o) {
+//    
+//}
+//
+//PhysicalObj& PhysicalObj::operator=(const PhysicalObj& o) {
+//    
+//    
+//    return *this;
+//}
+
+bool PhysicalObj::HasCollider() const {
     return m_Collider != nullptr;
 }
 
-std::unique_ptr<Collider>& PhysicalObj::collider() {
-    assert(m_Collider && "Call collider() but no collider");
-    return m_Collider;
-}
-
-bool PhysicalObj::HasRigidBody() {
+bool PhysicalObj::HasRigidBody() const {
     return m_Rigidbody != nullptr;
 }
 
-std::unique_ptr<RigidBody>& PhysicalObj::rigidbody() {
+RigidBody& PhysicalObj::SetRigidbody() {
+    m_Rigidbody.reset(new RigidBody);
+    return rigidbody();
+}
+
+RigidBody& PhysicalObj::rigidbody() {
     assert(m_Rigidbody && "Call rigidbody() but no rigidbody");
-    return m_Rigidbody;
+    return *m_Rigidbody;
 }
 
 }

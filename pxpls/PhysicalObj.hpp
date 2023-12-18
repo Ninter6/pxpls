@@ -8,6 +8,7 @@
 #pragma once
 
 #include <optional>
+#include <cassert>
 
 #include "Transform.hpp"
 #include "Collider.hpp"
@@ -18,13 +19,36 @@ namespace pxpls {
 class PhysicalObj {
 public:
     PhysicalObj() = default;
+    PhysicalObj(const PhysicalObj&) = delete;
+    PhysicalObj& operator=(const PhysicalObj&) = delete;
+    PhysicalObj(PhysicalObj&&) = default;
+    PhysicalObj& operator=(PhysicalObj&&) = default;
     
     TransForm transform{};
     
-    bool HasCollider();
-    std::unique_ptr<Collider>& collider();
-    bool HasRigidBody();
-    std::unique_ptr<RigidBody>& rigidbody();
+    bool HasCollider() const;
+    
+    template <class T, class... Args>
+    std::enable_if_t<std::is_base_of_v<Collider, T>, T&>
+    SetCollider(Args... args) {
+        m_Collider.reset(new T{std::forward<Args>(args)...});
+        return collider<T>();
+    }
+    
+    template <class T = Collider>
+    std::enable_if_t<std::is_base_of_v<Collider, T>, T&>
+    collider() {
+        assert(m_Collider && "Call collider() but no collider");
+        
+        auto p = dynamic_cast<T*>(m_Rigidbody.get());
+        assert(p && "Call collider() with wrong type!");
+        
+        return *p;
+    }
+    
+    bool HasRigidBody() const;
+    RigidBody& SetRigidbody();
+    RigidBody& rigidbody();
     
 private:
     

@@ -15,8 +15,8 @@ namespace pxpls {
 struct RigidBody {
     float mass = 1.f;
     float gravity = 1.f;
-    mathpls::vec3 velocity;
-    mathpls::vec3 acceleration;
+    mathpls::vec3 velocity{};
+    mathpls::vec3 acceleration{0};
 };
 
 }
