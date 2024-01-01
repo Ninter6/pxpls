@@ -64,10 +64,10 @@ CollisionPoints PlaneCollider::TestCollision(const TransForm &transform, const P
         
         CollisionPoints rz;
         
-        rz.A = (ob - oa).normalize() * a.Radius + oa;
-        rz.B = (oa - ob).normalize() * b.Radius + ob;
+        rz.A = (ob - oa).normalized() * a.Radius + oa;
+        rz.B = (oa - ob).normalized() * b.Radius + ob;
         rz.Depth = (rz.B - rz.A).length();
-        rz.Normal = (rz.B - rz.A).normalize();
+        rz.Normal = (rz.B - rz.A).normalized();
         rz.HasCollision = (ob - oa).length() <= a.Radius + b.Radius;
         
         return rz;
@@ -84,7 +84,7 @@ CollisionPoints PlaneCollider::TestCollision(const TransForm &transform, const P
         // P到平面距离    |d(P)|
         
         const auto& oa = a.Center + ta.Position, ob = b.Point + tb.Position;
-        const auto& bn = (mathpls::mat3(mathpls::rotate(tb.Rotation)) * b.Normal).normalize();
+        const auto& bn = (mathpls::mat3(mathpls::rotate(tb.Rotation)) * b.Normal).normalized();
         
         // 计算距离
         const auto ds = mathpls::dot(bn, oa - ob);
@@ -94,7 +94,7 @@ CollisionPoints PlaneCollider::TestCollision(const TransForm &transform, const P
         rz.A = oa + (ds < 0 ? 1.f : -1.f) * bn * a.Radius * ta.Scale.x;
         rz.B = oa - bn * ds;
         rz.Depth = a.Radius - abs(ds);
-        rz.Normal = (rz.B - rz.A).normalize();
+        rz.Normal = (rz.B - rz.A).normalized();
         rz.HasCollision = rz.Depth > 0;
         
         return rz;
