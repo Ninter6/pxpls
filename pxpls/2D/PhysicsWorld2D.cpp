@@ -135,9 +135,9 @@ std::vector<CollisionPair> QuadTree::GetCollisionPairs() const {
         if (node.bodies.size() > 0)
             for (int i = 0; i < node.bodies.size() - 1; ++i)
                 for (int j = i + 1; j < node.bodies.size(); ++j) {
-//                    auto a = node.bodies[i], b = node.bodies[j];
-//                    if (a < b) pairs.emplace(a->id, b->id);
-//                    if (a > b) pairs.emplace(b->id, a->id);
+                    //                    auto a = node.bodies[i], b = node.bodies[j];
+                    //                    if (a < b) pairs.emplace(a->id, b->id);
+                    //                    if (a > b) pairs.emplace(b->id, a->id);
                     pairs.emplace(node.bodies[i]->id, node.bodies[j]->id);
                 }
     
@@ -151,7 +151,11 @@ void CollisionWorld::SetCollisionBodies(const CollisionBody::Map& bodies) {
     m_Bodies = bodies;
 }
 
-void CollisionWorld::SetSolvers(const std::vector<Solver *>& solvers) {
+CollisionBody::Map CollisionWorld::GetCollisionBodies() const {
+    return m_Bodies;
+}
+
+void CollisionWorld::SetSolvers(const std::vector<Solver*>& solvers) {
     m_Solvers = solvers;
 }
 
@@ -233,37 +237,45 @@ void CollisionWorld::ResolveCollisions(float deltaTime) {
     SendCollisionCallbacks(triggers, deltaTime);
 }
 
-void DynamicsWorld::AddRigidbody(Rigidbody *rigidbody) {
-    AddCollisionBody(rigidbody);
+bool SpringWorld::AddSpring(const Spring& spring) {
+    return m_Springs.emplace(spring.Link, spring).second;
 }
 
-void DynamicsWorld::ApplyGravity() const {
-    for (auto& [_, body] : m_Bodies) {
-        if (!body->IsDynamic) continue;
-        const auto rigidbody = (Rigidbody*)body;
-        if (!rigidbody->TakesGravity) continue;
-        
-        const auto force = Gravity * rigidbody->Mass;
-        rigidbody->ApplyForce(force);
-    }
+bool SpringWorld::RemoveSpring(const Link &link) {
+    return m_Springs.erase(link);
+}
+
+void SpringWorld::ResolveSprings(float deltaTime) const {
+    for (auto& [_, i] : m_Springs)
+        i.CalcuForce();
+}
+
+void DynamicsWorld::AddRigidbody(Rigidbody *rigidbody) {
+    AddCollisionBody(rigidbody);
 }
 
 void DynamicsWorld::MoveBodies(const float deltaTime) const {
     for (const auto& [_, body] : m_Bodies) {
         if (!body->IsDynamic) continue;
         const auto rigidbody = (Rigidbody*)body;
-
-        rigidbody->Velocity += rigidbody->Force * rigidbody->InvMass() * deltaTime;
         
-        rigidbody->Position() += rigidbody->Velocity * deltaTime;
+        mathpls::vec2 dv = rigidbody->Force * rigidbody->InvMass();
+        if (rigidbody->TakesGravity)
+            dv += Gravity; // Apply Gravity
+        dv *= deltaTime;
+
+        rigidbody->Velocity += dv;
+        
+        // semi-implicit Euler method
+        rigidbody->Position() += (rigidbody->Velocity + dv) * deltaTime;
 
         rigidbody->Force = {0};
     }
 }
 
 void DynamicsWorld::Step(const float deltaTime) {
-    ApplyGravity();
     ResolveCollisions(deltaTime);
+    ResolveSprings(deltaTime);
     MoveBodies(deltaTime);
 }
 

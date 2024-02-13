@@ -1,5 +1,5 @@
 //
-//  main.cpp
+//  collision.cpp
 //  demo2D
 //
 //  Created by Ninter6 on 2023/12/23.
@@ -11,20 +11,12 @@
 #include "pxpls/2D/PhysicsWorld2D.hpp"
 
 #include <iostream>
-#include <future>
+#include <random>
 #include "nova/src/nova/Tool/se_tools/setimer.h"
 
 class Entity {
 public:
-    Entity() = default;
-    
-    virtual void draw() const = 0;
-};
-
-namespace Impl {
-class Entity : virtual public ::Entity {
-public:
-    Entity(pxpls::DynamicsWorld& world, std::unique_ptr<pxpls::Collider> collider)
+    Entity(pxpls::DynamicsWorld& world, std::unique_ptr<pxpls::Collider>&& collider)
     : World(world), Collider(std::move(collider)), Rigidbody(new pxpls::Rigidbody) {
         Rigidbody->Collider = Collider.get();
         Rigidbody->IsKinematic = true;
@@ -33,31 +25,33 @@ public:
         World.AddRigidbody(Rigidbody.get());
     }
     
-    pxpls::Transform2D& Trans() {
+    pxpls::Transform2D& Trans() const {
         return Rigidbody->Transform;
     }
+    
+    virtual void draw() const = 0;
     
     pxpls::DynamicsWorld& World;
     std::unique_ptr<pxpls::Collider> Collider;
     std::unique_ptr<pxpls::Rigidbody> Rigidbody;
 };
-}
 
-class Circle : virtual public Entity, virtual public Impl::Entity {
+class Circle : virtual public Entity {
 public:
     Circle(pxpls::DynamicsWorld& world, float radius)
     : Entity(world, std::make_unique<pxpls::CircleCollider>(pxpls::Point2D{}, radius)) {}
     
     virtual void draw() const override {
-        DrawCircleLines(Rigidbody->Position().x,
-                        Rigidbody->Position().y,
-                        dynamic_cast<pxpls::CircleCollider*>(Collider.get())->Radius,
-                        YELLOW);
+        auto p = dynamic_cast<pxpls::CircleCollider*>(Collider.get());
+        const auto& pos = p->Center + Trans().Position;
+        const auto& R = p->Radius * Trans().Scale.x;
+        
+        DrawCircleLines(pos.x, pos.y, R, Rigidbody->IsDynamic ? YELLOW : BLUE);
     }
     
 };
 
-class Line : virtual public Entity, virtual public Impl::Entity {
+class Line : virtual public Entity {
 public:
     Line(pxpls::DynamicsWorld& world, pxpls::Point2D ori, mathpls::vec2 vec)
     : Entity(world, std::make_unique<pxpls::LineCollider>(ori, vec)) {}
@@ -67,9 +61,22 @@ public:
         auto start = Rigidbody->Position() + line->Origin;
         auto end = start + line->Vector;
         
-        DrawLine(start.x, start.y, end.x, end.y, BLUE);
+        DrawLineV({start.x, start.y}, {end.x, end.y}, BLUE);
     }
     
+};
+
+class AabbBox : virtual public Entity {
+public:
+    AabbBox(pxpls::DynamicsWorld& world, pxpls::Point2D pos, mathpls::vec2 ext)
+    : Entity(world, std::make_unique<pxpls::AabbColloder>(pos, ext)) {}
+    
+    virtual void draw() const override {
+        auto p = dynamic_cast<pxpls::AabbColloder*>(Collider.get());
+        const auto& pos = p->Position + Trans().Position,
+                    ext = p->Extent * Trans().Scale;
+        DrawRectangleLinesEx({pos.x, pos.y, ext.x, ext.y}, 1, BLUE);
+    }
 };
 
 constexpr mathpls::uivec2 WinSize{800, 600};
@@ -79,7 +86,7 @@ pxpls::ImpulseSolver solver1;
 pxpls::SmoothPositionSolver solver2;
 
 int main() {
-    Circle circle{world, 20},
+    Circle circle{world, 200},
     circle1{world, 20};
     Circle circle2{world, 100};
 //    Line line{world, {-100, 0}, {200, 10}};
@@ -100,16 +107,19 @@ int main() {
     SetConfigFlags(FLAG_MSAA_4X_HINT);
         
     //初始化窗口
-    InitWindow(WinSize.x, WinSize.y, "pxpls demo 2D");
+    InitWindow(WinSize.x, WinSize.y, "pxpls demo 2D: collsion");
     
     Camera2D camera = { 0 };
     camera.offset = {400, 300};
     camera.zoom = 1.0f;
     
     SetTargetFPS(60);
+    rlEnableSmoothLines();
+    
+    std::vector<Circle> cv;
     
     st::Countdown cd{1};
-    std::vector<Circle> cv;
+    cd.Start();
     
     // Main game loop
     while (!WindowShouldClose()) {

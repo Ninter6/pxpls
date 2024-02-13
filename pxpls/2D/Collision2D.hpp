@@ -139,6 +139,7 @@ public:
 };
 
 class AabbColloder : public Collider {
+public:
     AabbColloder() = default;
     AabbColloder(Point2D pos, mathpls::vec2 ext);
     
@@ -160,7 +161,7 @@ class AabbColloder : public Collider {
     
     virtual Bounds2D GetBounds(const Transform2D* transform) const override;
     
-    std::vector<LineCollider> GetSides() const;
+    std::vector<LineCollider> GetSides(const Transform2D *transform = nullptr) const;
     
     mathpls::vec2 Position, Extent;
 };

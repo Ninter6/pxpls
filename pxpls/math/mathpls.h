@@ -593,6 +593,7 @@ struct qua{
     union {
         struct { T w, x, y, z; };
         struct { T l, i, j, k; };
+        T asArray[4];
     };
     
     T length_squared() const {return w*w + x*x + y*y + z*z;}
@@ -692,6 +693,16 @@ qua<T>::qua(EulerAngle angles, EARS sequence) {
 using quat = qua<float>;
 
 // useful funstions
+
+template <class T, unsigned int N>
+constexpr T distance(vec<T, N> v1, vec<T, N> v2) {
+    return (v1 - v2).length();
+}
+
+template <class T, unsigned int N>
+constexpr T distance_quared(vec<T, N> v1, vec<T, N> v2) {
+    return (v1 - v2).length_squared();
+}
 
 template <class T, unsigned int N>
 constexpr T dot(vec<T, N> v1, vec<T, N> v2) {

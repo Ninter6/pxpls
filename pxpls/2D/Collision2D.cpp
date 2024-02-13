@@ -58,13 +58,19 @@ CollisionPoints FindCircleCilcleCollisionPoints(const CircleCollider* a,
     CollisionPoints res{};
     
     res.HasCollision = true;
-    res.B = bPos - aTob * bR;
     if (distence >= std::max(aR, bR)) {
         res.A = aPos + aTob * aR;
+        res.B = bPos - aTob * bR;
         res.Depth = aR + bR - distence;
         res.Normal = aTob;
     } else {
-        res.A = aPos - aTob * aR;
+        if (aR > bR) {
+            res.A = aPos + aTob * aR;
+            res.B = bPos + aTob * bR;
+        } else {
+            res.A = aPos - aTob * aR;
+            res.B = bPos - aTob * bR;
+        }
         res.Depth = distence - std::abs(aR - bR);
         res.Normal = -aTob;
     }
@@ -85,9 +91,14 @@ CollisionPoints FindLineCilcleCollisionPoints(const LineCollider* a,
     const auto aPos = a->Origin + at->Position, bPos = b->Center + bt->Position;
     const auto aVec = RotateVec(a->Vector, at->Rotation) * at->Scale;
     const auto bR = b->Radius * bt->Scale.x;
+    const auto bR2 = bR * bR;
     
     // move b to the local space of a
     const auto bPosInLS = bPos - aPos;
+    
+    if (bPosInLS.length_squared() <= bR2 &&
+        (bPosInLS - aVec).length_squared() <= bR2)
+        return {}; // the line is inside the circle
     
     // determine whether the vertical foot is on the line segment
     auto foot = mathpls::project(bPosInLS, aVec);
@@ -107,7 +118,7 @@ CollisionPoints FindLineCilcleCollisionPoints(const LineCollider* a,
     res.A = foot + aPos;
     res.B = bPos - perp.normalized() * bR;
     res.Depth = depth;
-    res.Normal = perp.normalized();
+    res.Normal = -perp.normalized();
     
     return res;
 }
@@ -157,8 +168,13 @@ CollisionPoints FindCircleAabbCollisionPoints(const CircleCollider* a,
                                               const Transform2D* at,
                                               const AabbColloder* b,
                                               const Transform2D* bt) {
-    // TODO
-    return {};
+    CollisionPoints res{};
+    for (const auto& i : b->GetSides()) {
+        auto cp = FindLineCilcleCollisionPoints(&i, bt, a, at);
+        if (cp.HasCollision && cp.Depth > res.Depth)
+            res = cp;
+    }
+    return res;
 }
 
 CollisionPoints FindAabbAabbCollisionPoints(const AabbColloder* a,
@@ -289,6 +305,18 @@ Bounds2D AabbColloder::GetBounds(const Transform2D *transform) const {
     auto max = min + Extent * transform->Scale;
     
     return {min, max};
+}
+
+std::vector<LineCollider> AabbColloder::GetSides(const Transform2D *transform) const {
+    const auto& [min, max] = 
+        transform ? GetBounds(transform) : Bounds2D{Position, Position + Extent};
+    
+    return {
+        {min, {Extent.x, 0}},               // bottom
+        {{max.x, min.y}, {0, Extent.y}},    // right
+        {max, {-Extent.x, 0}},              // top
+        {{min.x, max.y}, {0, -Extent.y}}    // left
+    };
 }
 
 CollisionBody::id_t CollisionBody::currentId = 0;

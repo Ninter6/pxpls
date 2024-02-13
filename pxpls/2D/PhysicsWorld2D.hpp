@@ -10,6 +10,7 @@
 #include "Collision2D.hpp"
 #include "Dynamic2D.hpp"
 #include "Solver2D.hpp"
+#include "Spring2D.hpp"
 
 #include <memory>
 #include <queue>
@@ -109,6 +110,8 @@ public:
      */
     void SetCollisionBodies(const CollisionBody::Map& bodies);
     
+    CollisionBody::Map GetCollisionBodies() const;
+    
     /**
      * \brief Set the solvers of the world
      * \param solvers solvers to set.
@@ -166,7 +169,7 @@ public:
     void ResolveCollisions(float deltaTime);
     
 private:
-    std::unordered_map<std::uint64_t, CollisionBody*> m_Bodies;
+    CollisionBody::Map m_Bodies;
     std::vector<Solver*> m_Solvers;
     std::unique_ptr<PhaseGrid> m_Grid;
 
@@ -176,9 +179,37 @@ private:
 };
 
 /**
+ * \brief Represents a world where springs exist.
+ */
+class SpringWorld {
+public:
+    SpringWorld() = default;
+    
+    /**
+     * \brief Adds a spring to the world.
+     * \param spring spring to add.
+     * \result If the addition is successful.
+     */
+    bool AddSpring(const Spring& spring);
+    
+    /**
+     * \brief Removes a spring from the world.
+     * \param link link of the spring (order doesnt matter)
+     * \result If the removing is successful.
+     */
+    bool RemoveSpring(const Link& link);
+    
+    void ResolveSprings(float deltaTime) const;
+    
+private:
+    std::unordered_map<Link, Spring> m_Springs;
+    
+};
+
+/**
 * \brief A world with dynamics in it.
 */
-class DynamicsWorld : public CollisionWorld {
+class DynamicsWorld : public CollisionWorld, public SpringWorld {
 public:
     using CollisionWorld::CollisionWorld; // inherit constructor
     
@@ -187,11 +218,6 @@ public:
      * \param rigidbody Rigidbody to add.
      */
     void AddRigidbody(Rigidbody* rigidbody);
-
-    /**
-     * \brief Applies the gravity to all the rigidbody.
-     */
-    void ApplyGravity() const;
 
     /**
      * \brief Moves all the rigidbodies.
