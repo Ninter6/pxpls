@@ -7,6 +7,9 @@
 
 #include "Dynamic2D.hpp"
 
+#include <cmath>
+#include <limits>
+
 namespace pxpls {
 
 Rigidbody::Rigidbody() : Mass(1), TakesGravity(true) {

@@ -25,6 +25,10 @@ public:
         World.AddRigidbody(Rigidbody.get());
     }
     
+    Entity(Entity&&) = default;
+    
+    virtual ~Entity() = default;
+    
     pxpls::Transform2D& Trans() const {
         return Rigidbody->Transform;
     }

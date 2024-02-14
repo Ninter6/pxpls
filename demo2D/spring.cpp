@@ -54,25 +54,6 @@ public:
     
 };
 
-class Link : virtual public Entity {
-public:
-    Link(pxpls::DynamicsWorld& world, pxpls::CollisionBody* a, pxpls::CollisionBody* b)
-    : Entity(world, nullptr), A(a), B(b) {
-        world.AddSpring({(pxpls::Rigidbody*)A, (pxpls::Rigidbody*)B, 20, 7});
-    }
-    
-    virtual void draw() const override {
-        const auto& pa = A->Position();
-        const auto& pb = B->Position();
-        DrawLineEx({pa.x, pa.y}, {pb.x, pb.y}, 1, GRAY);
-    }
-    
-private:
-    pxpls::CollisionBody* A;
-    pxpls::CollisionBody* B;
-    
-};
-
 class Game {
 public:
     Game()
@@ -107,9 +88,12 @@ protected:
     }
     
     void renderTick() {
-        for (auto& i : m_Entities | std::views::filter([&](auto&& i){return !isMass(i->Rigidbody.get());}))
-            i->draw();
-        for (auto& i : m_Entities | std::views::filter([&](auto&& i){return isMass(i->Rigidbody.get());}))
+        for (auto& [a, b] : m_Links) {
+            const auto& pa = a->Position();
+            const auto& pb = b->Position();
+            DrawLineEx({pa.x, pa.y}, {pb.x, pb.y}, 1, GRAY);
+        }
+        for (auto& i : m_Entities)
             i->draw();
         DrawCircleV({0, 0}, 1.5f, BLUE); // rect node
     }
@@ -117,12 +101,11 @@ protected:
     void testInput() {
         if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
             auto mpos = GetMousePosition();
+            
             mathpls::vec2 pos = {mpos.x - win_ext.x * .5f, mpos.y - win_ext.y * .5f};
             pos *= .1f;
             
             addMass(pos);
-            
-//            std::cout << pos.x << " " << pos.y << std::endl;
         }
     }
     
@@ -141,8 +124,10 @@ protected:
         })) {
             const auto& a = map.at(i.first);
             const auto& b = map.at(i.second);
-            if (mathpls::distance_quared(a->Position(), b->Position()) < 144)
-                m_Entities.emplace_back(std::make_unique<Link>(m_World, a, b));
+            if (mathpls::distance_quared(a->Position(), b->Position()) < 144) {
+                m_Links.emplace_back((pxpls::Rigidbody*)a, (pxpls::Rigidbody*)b);
+                m_World.AddSpring({m_Links.back(), 20, 7});
+            }
         }
     }
     
@@ -156,6 +141,7 @@ private:
     
     pxpls::DynamicsWorld m_World;
     std::vector<std::unique_ptr<Entity>> m_Entities;
+    std::vector<pxpls::Link> m_Links;
     
     pxpls::Rigidbody rectRB;
     pxpls::AabbColloder rectCol;

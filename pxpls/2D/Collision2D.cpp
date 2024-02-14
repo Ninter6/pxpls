@@ -51,7 +51,7 @@ CollisionPoints FindCircleCilcleCollisionPoints(const CircleCollider* a,
     auto aTob = bPos - aPos;
     auto distence = aTob.length();
     
-    if (distence >= aR + bR || distence <= abs(aR - bR)) return {};
+    if (distence >= aR + bR || distence <= std::abs(aR - bR)) return {};
     
     aTob.normalize();
     

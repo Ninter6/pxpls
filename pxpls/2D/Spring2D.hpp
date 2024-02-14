@@ -32,6 +32,8 @@ struct Link {
  */
 struct Spring {
     Spring() = default;
+    Spring(const Link& link, float k, float rest_len)
+    : Link(link), K(k), RestLength(rest_len) {}
     Spring(Rigidbody* a, Rigidbody* b, float k, float rest_len)
     : Link(a, b), K(k), RestLength(rest_len) {}
     
