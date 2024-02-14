@@ -10,6 +10,7 @@
 #include "Transform2D.h"
 
 #include <vector>
+#include <cstdint>
 #include <functional>
 #include <unordered_map>
 
