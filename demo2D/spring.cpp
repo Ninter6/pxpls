@@ -15,6 +15,8 @@
 
 mathpls::uivec2 win_ext{800, 500};
 
+constexpr float dt = 3e-3f;
+
 class Entity {
 public:
     Entity(pxpls::DynamicsWorld& world, std::unique_ptr<pxpls::Collider>&& collider)
@@ -57,20 +59,20 @@ public:
 class Game {
 public:
     Game()
-    : m_World(std::make_unique<pxpls::QuadTree>(pxpls::Bounds2D{{-100}, {100}})),
+    : m_World(std::make_unique<pxpls::UniformGird>(pxpls::Bounds2D{-100, 100}, 10)),
     rectCol({win_ext.x * -.05f, win_ext.y * -.05f}, {win_ext.x * .1f, win_ext.y * .1f}) {
         rectRB.Collider = &rectCol;
         rectRB.IsDynamic = false;
         
         m_World.AddRigidbody(&rectRB);
-        m_World.Gravity *= -1;
+        m_World.Gravity *= -3;
         
         m_World.AddSolver(&solver1);
         m_World.AddSolver(&solver2);
     }
     
     void addMass(pxpls::Point2D pos, bool pinned = false) {
-        m_Entities.emplace_back(std::make_unique<Circle>(m_World, 1.5f));
+        m_Entities.emplace_back(std::make_unique<Circle>(m_World, 1.f));
         m_Entities.back()->Trans().Position = pos;
         
         testLink(*m_Entities.back());
@@ -84,18 +86,20 @@ public:
 protected:
     void logicTick(float deltaTime) {
         testInput();
-        m_World.Step(deltaTime);
+        constexpr int n = 1.f / 60.f / dt + .5f;
+        for (int i = n; i--;)
+            m_World.Step(deltaTime);
     }
     
     void renderTick() {
         for (auto& [a, b] : m_Links) {
             const auto& pa = a->Position();
             const auto& pb = b->Position();
-            DrawLineEx({pa.x, pa.y}, {pb.x, pb.y}, 1, GRAY);
+            DrawLineEx({pa.x, pa.y}, {pb.x, pb.y}, .7f, GRAY);
         }
         for (auto& i : m_Entities)
             i->draw();
-        DrawCircleV({0, 0}, 1.5f, BLUE); // rect node
+        DrawCircleV({0, 0}, 1.f, BLUE); // rect node
     }
     
     void testInput() {
@@ -124,9 +128,9 @@ protected:
         })) {
             const auto& a = map.at(i.first);
             const auto& b = map.at(i.second);
-            if (mathpls::distance_quared(a->Position(), b->Position()) < 144) {
+            if (mathpls::distance_quared(a->Position(), b->Position()) < search_radius2) {
                 m_Links.emplace_back((pxpls::Rigidbody*)a, (pxpls::Rigidbody*)b);
-                m_World.AddSpring({m_Links.back(), 20, 7});
+                m_World.AddSpring({m_Links.back(), k, rest_len, dashpot});
             }
         }
     }
@@ -136,6 +140,11 @@ protected:
     }
     
 private:
+    float search_radius2 = 144; // search_radius^2
+    float rest_len = 7;
+    float k = 1000;
+    float dashpot = 100;
+    
     pxpls::ImpulseSolver solver1;
     pxpls::SmoothPositionSolver solver2;
     
@@ -174,7 +183,7 @@ int main(int argc, const char * argv[]) {
             DrawGrid(100, 5);
         }rlPopMatrix();
         
-        game.tick(1.f / 50.f);
+        game.tick(dt);
         
         EndMode2D();
         

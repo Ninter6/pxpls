@@ -32,4 +32,10 @@ mathpls::vec2& Rigidbody::ApplyForce(mathpls::vec2 addedForce) {
     return Force += addedForce;
 }
 
+mathpls::vec2 Rigidbody::SetPostion(const mathpls::vec2& pos) {
+    LastPosition = Position();
+    Position() = pos;
+    return LastPosition;
+}
+
 }

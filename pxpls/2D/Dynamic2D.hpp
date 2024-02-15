@@ -19,8 +19,15 @@ public:
     
     mathpls::vec2& ApplyForce(mathpls::vec2 addedForce);
     
+    /**
+     * \brief Set new position and change last position
+     * \result The last position
+     */
+    mathpls::vec2 SetPostion(const mathpls::vec2& pos);
+    
     mathpls::vec2 Force;
     mathpls::vec2 Velocity;
+    mathpls::vec2 LastPosition;
 
     float Mass{};
     bool TakesGravity{};

@@ -27,10 +27,42 @@ public:
     virtual std::vector<CollisionPair> GetCollisionPairs() const = 0;
 };
 
+class UniformGird : public PhaseGrid {
+public:
+    /**
+     * \brief Constructs a new grid.
+     * \param bound Bound of the whole gird
+     * \param cellSize Size (in meter) of a cell.
+     */
+    UniformGird(const Bounds2D& bound, float cellSize);
+
+    /**
+     * \brief Updates the layout of the grid.
+     * \param bodies Bodies in the physical world.
+     */
+    virtual void Update(const CollisionBody::Map& bodies) override;
+
+    /**
+     * \brief Find all the pair of objects that are in the same cell.
+     * Doesn't contain any duplicates.
+     * \return The pair of objects that will collide.
+     */
+    virtual std::vector<CollisionPair> GetCollisionPairs() const override;
+
+private:
+    std::vector<std::vector<std::vector<CollisionBody*>>> m_Grid;
+    Bounds2D m_Bounds;
+    float m_CellSize;
+
+    static bool HasBeenChecked(
+        const std::unordered_multimap<CollisionBody*, CollisionBody*>& checkedCollisions,
+        const std::pair<CollisionBody*, CollisionBody*>& bodyPair);
+};
+
 class QuadTree : public PhaseGrid {
 public:
     struct Node {
-        Node(Bounds2D bounds, uint32_t currDepth);
+        Node(const Bounds2D& bounds, uint32_t currDepth);
         
         /**
          * \brief Determine whether a node is a leaf node.
@@ -78,7 +110,7 @@ public:
     }; // forward iterator
     
     QuadTree() = default;
-    QuadTree(Bounds2D rootBound, uint32_t maxDepth = 5, uint32_t maxObjPreNode = 5);
+    QuadTree(const Bounds2D& rootBound, uint32_t maxDepth = 5, uint32_t maxObjPreNode = 5);
     
     virtual void Update(const CollisionBody::Map& bodies) override;
     virtual std::vector<CollisionPair> GetCollisionPairs() const override;
@@ -206,6 +238,12 @@ private:
     
 };
 
+enum class Evolution {
+    Euler,
+    Verlet_Postion,
+    Verlet_Velocity
+};
+
 /**
 * \brief A world with dynamics in it.
 */
@@ -223,13 +261,16 @@ public:
      * \brief Moves all the rigidbodies.
      * \param deltaTime Time elapsed since the last frame.
      */
-    void MoveBodies(float deltaTime) const;
+    void MoveBodies(float deltaTime, Evolution mode) const;
 
     /**
      * \brief Steps the world.
      * \param deltaTime Time elapsed since the last frame.
      */
     void Step(float deltaTime);
+    
+    void substepCollision(float deltaTime);
+    void substepString(float deltaTime);
 
     mathpls::vec2 Gravity = {0, -9.81f};
 };

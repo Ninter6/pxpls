@@ -20,7 +20,63 @@ struct std::hash<pxpls::CollisionPair> {
 
 namespace pxpls {
 
-QuadTree::Node::Node(Bounds2D bounds, uint32_t currDepth)
+UniformGird::UniformGird(const Bounds2D& bounds, float cellSize)
+: m_Bounds(bounds), m_CellSize(cellSize) {
+    const std::vector<std::vector<CollisionBody*>>& height{
+        static_cast<size_t>((bounds.max.y - bounds.min.y) / cellSize)
+    };
+    m_Grid.resize(static_cast<size_t>((bounds.max.x - bounds.min.x) / cellSize), height);
+}
+
+void UniformGird::Update(const CollisionBody::Map& bodies) {
+    // clear
+    for (auto& gridCol : m_Grid)
+        for (auto& gridCell : gridCol)
+            gridCell.clear();
+    
+    // process bodies
+    for (const auto& [_, body] : bodies) {
+        const auto& transform = body->Transform;
+        const auto& collider = body->Collider;
+
+        const auto bounds = collider->GetBounds(&transform);
+
+        // If body is outside the grid extents, then ignore it
+        if (!m_Bounds.IsOverlapping(bounds))
+            continue;
+        
+        auto offsetmin = (bounds.min - m_Bounds.min) / m_CellSize;
+        auto offsetmax = (bounds.max - m_Bounds.min) / m_CellSize;
+        
+        mathpls::vec<size_t, 2> imin = {
+            std::clamp<size_t>(std::floor(offsetmin.x), 0, m_Grid.size() - 1),
+            std::clamp<size_t>(std::floor(offsetmin.y), 0, m_Grid.size() - 1)
+        };
+        mathpls::vec<size_t, 2> imax = {
+            std::clamp<size_t>(std::floor(offsetmax.x), 0, m_Grid.size() - 1),
+            std::clamp<size_t>(std::floor(offsetmax.y), 0, m_Grid.size() - 1)
+        };
+        
+        for (size_t i = imin.x; i <= imax.x; ++i)
+            for (size_t j = imin.y; j <= imax.y; ++j)
+                m_Grid[i][j].push_back(body);
+    }
+}
+
+std::vector<CollisionPair> UniformGird::GetCollisionPairs() const {
+    std::unordered_set<CollisionPair> pairs;
+    
+    for (auto& gridCol : m_Grid)
+        for (auto& gridCell : gridCol)
+            if (gridCell.size() > 1)
+                for (int i = 0; i < gridCell.size() - 1; ++i)
+                    for (int j = i + 1; j < gridCell.size(); ++j)
+                        pairs.emplace(gridCell[i]->id, gridCell[j]->id);
+    
+    return {pairs.begin(), pairs.end()};
+}
+
+QuadTree::Node::Node(const Bounds2D& bounds, uint32_t currDepth)
 : bounds(bounds), currDepth(currDepth) {}
 
 bool QuadTree::Node::IsLeaf() const {
@@ -99,7 +155,7 @@ bool operator!=(const QuadTree::Iterator& a, const QuadTree::Iterator& b) {
     return !(a == b);
 }
 
-QuadTree::QuadTree(Bounds2D rootBound, uint32_t maxDepth, uint32_t maxObjsPreNode)
+QuadTree::QuadTree(const Bounds2D& rootBound, uint32_t maxDepth, uint32_t maxObjsPreNode)
 : m_Root(new Node(rootBound, 0)), maxDepth(maxDepth), maxObjsPreNode(maxObjsPreNode) {}
 
 QuadTree::Iterator QuadTree::begin() {
@@ -132,7 +188,7 @@ void QuadTree::Update(const CollisionBody::Map& bodies) {
 std::vector<CollisionPair> QuadTree::GetCollisionPairs() const {
     std::unordered_set<CollisionPair> pairs;
     for (auto& node : *this)
-        if (node.bodies.size() > 0)
+        if (node.bodies.size() > 1)
             for (int i = 0; i < node.bodies.size() - 1; ++i)
                 for (int j = i + 1; j < node.bodies.size(); ++j) {
                     //                    auto a = node.bodies[i], b = node.bodies[j];
@@ -254,29 +310,50 @@ void DynamicsWorld::AddRigidbody(Rigidbody *rigidbody) {
     AddCollisionBody(rigidbody);
 }
 
-void DynamicsWorld::MoveBodies(const float deltaTime) const {
+void DynamicsWorld::MoveBodies(const float deltaTime, Evolution mode) const {
     for (const auto& [_, body] : m_Bodies) {
         if (!body->IsDynamic) continue;
         const auto rigidbody = (Rigidbody*)body;
         
-        mathpls::vec2 dv = rigidbody->Force * rigidbody->InvMass();
+        mathpls::vec2 a = rigidbody->Force * rigidbody->InvMass();
         if (rigidbody->TakesGravity)
-            dv += Gravity; // Apply Gravity
-        dv *= deltaTime;
-
-        rigidbody->Velocity += dv;
+            a += Gravity; // Apply Gravity
         
-        // semi-implicit Euler method
-        rigidbody->Position() += (rigidbody->Velocity + dv) * deltaTime;
-
+        switch (mode) {
+                // semi-implicit Euler method
+            case Evolution::Euler: {
+                auto dv = a * deltaTime;
+                rigidbody->Velocity += dv;
+                rigidbody->Position() += (rigidbody->Velocity + dv) * deltaTime;
+                break;
+            }
+                // Velocity Verlet
+            case Evolution::Verlet_Postion:
+                rigidbody->Position() += rigidbody->Velocity * deltaTime + a * .5f * deltaTime * deltaTime;
+                rigidbody->Velocity += a * deltaTime * .5f;
+                break;
+            case Evolution::Verlet_Velocity:
+                rigidbody->Velocity += a * deltaTime * .5f;
+                break;
+        }
+        
         rigidbody->Force = {0};
     }
 }
 
-void DynamicsWorld::Step(const float deltaTime) {
+void DynamicsWorld::Step(float deltaTime) {
+    // COLLISION
+    // no force generated
     ResolveCollisions(deltaTime);
+    
+    // SPRING
+    // p(t+dt) = p(t) + v(t)dt + a(t) * dt^2 / 2
+    // v(t+dt) = v(t) + (a(t+dt) + a(t)) * dt / 2
+    // divided into two calculations
     ResolveSprings(deltaTime);
-    MoveBodies(deltaTime);
+    MoveBodies(deltaTime, Evolution::Verlet_Postion);
+    ResolveSprings(deltaTime);
+    MoveBodies(deltaTime, Evolution::Verlet_Velocity);
 }
 
 }

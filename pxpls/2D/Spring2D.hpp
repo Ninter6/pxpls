@@ -32,15 +32,17 @@ struct Link {
  */
 struct Spring {
     Spring() = default;
-    Spring(const Link& link, float k, float rest_len)
-    : Link(link), K(k), RestLength(rest_len) {}
-    Spring(Rigidbody* a, Rigidbody* b, float k, float rest_len)
-    : Link(a, b), K(k), RestLength(rest_len) {}
+    Spring(const Link& link, float k, float rest_len, float dashpot = 0)
+    : Link(link), K(k), RestLength(rest_len), Dashpot(dashpot) {}
+    Spring(Rigidbody* a, Rigidbody* b, float k, float rest_len, float dashpot = 0)
+    : Link(a, b), K(k), RestLength(rest_len), Dashpot(dashpot) {}
     
     pxpls::Link Link;
     
     float K; // elastic coefficient
     float RestLength;
+    
+    float Dashpot; // Dashpot damping
     
     Rigidbody* A() const {return this->Link.A;}
     Rigidbody* B() const {return this->Link.B;}

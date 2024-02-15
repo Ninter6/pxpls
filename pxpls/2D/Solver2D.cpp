@@ -12,10 +12,8 @@ namespace pxpls {
 
 void ImpulseSolver::Solve(const std::vector<Collision> &collisions, float deltaTime) {
     for (const auto& [bodyA, bodyB, points] : collisions) {
-        // ReSharper disable CppCStyleCast
         Rigidbody* aBody = bodyA->IsDynamic ? (Rigidbody*)bodyA : nullptr;
         Rigidbody* bBody = bodyB->IsDynamic ? (Rigidbody*)bodyB : nullptr;
-        // ReSharper restore CppCStyleCast
         
         mathpls::vec2 aVel = aBody ? aBody->Velocity : mathpls::vec2{0};
         mathpls::vec2 bVel = bBody ? bBody->Velocity : mathpls::vec2{0};
@@ -80,10 +78,8 @@ void ImpulseSolver::Solve(const std::vector<Collision> &collisions, float deltaT
 
 void SmoothPositionSolver::Solve(const std::vector<Collision>& collisions, float deltaTime) {
     for (const auto& [bodyA, bodyB, points] : collisions) {
-        // ReSharper disable CppCStyleCast
         Rigidbody* aBody = bodyA->IsDynamic ? (Rigidbody*)bodyA : nullptr;
         Rigidbody* bBody = bodyB->IsDynamic ? (Rigidbody*)bodyB : nullptr;
-        // ReSharper restore CppCStyleCast
 
         const float aInvMass = aBody ? aBody->InvMass() : 0.0f;
         const float bInvMass = bBody ? bBody->InvMass() : 0.0f;
@@ -95,14 +91,14 @@ void SmoothPositionSolver::Solve(const std::vector<Collision>& collisions, float
             * std::max(points.Depth - slop, 0.0f)
             / (aInvMass + bInvMass);
 
-        if (aBody ? aBody->IsKinematic : false) {
+        if (aBody && aBody->IsKinematic) {
             const auto deltaA = aInvMass * correction;
-            aBody->Transform.Position -= deltaA;
+            aBody->Position() -= deltaA;
         }
 
-        if (bBody ? bBody->IsKinematic : false) {
+        if (bBody && bBody->IsKinematic) {
             const auto deltaB = bInvMass * correction;
-            bBody->Transform.Position += deltaB;
+            bBody->Position() += deltaB;
         }
     }
 }
