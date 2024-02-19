@@ -231,13 +231,33 @@ public:
      */
     bool RemoveSpring(const Link& link);
     
-    void ResolveSprings(float deltaTime) const;
+    void ResolveSprings() const;
     
 private:
     std::unordered_map<Link, Spring> m_Springs;
     
 };
 
+/**
+ * \brief Auxiliary struct for calculating gravity
+ */
+struct GravityFn {
+    // Rigidbody(read-only), Acceleration
+    using Func = std::function<void(const Rigidbody*, mathpls::vec2&)>;
+    
+    GravityFn() = default;
+    GravityFn(mathpls::vec2 gravity);
+    GravityFn(Func calcuFunc);
+    
+    void operator()(const Rigidbody* rb, mathpls::vec2& acc) const;
+    
+    Func func = nullptr;
+    mathpls::vec2 g{};
+};
+
+/**
+ * \brief Evolution mode, used to determine evolutionary algorithms
+ */
 enum class Evolution {
     Euler,
     Verlet_Postion,
@@ -245,8 +265,8 @@ enum class Evolution {
 };
 
 /**
-* \brief A world with dynamics in it.
-*/
+ * \brief A world with dynamics in it.
+ */
 class DynamicsWorld : public CollisionWorld, public SpringWorld {
 public:
     using CollisionWorld::CollisionWorld; // inherit constructor
@@ -269,10 +289,7 @@ public:
      */
     void Step(float deltaTime);
     
-    void substepCollision(float deltaTime);
-    void substepString(float deltaTime);
-
-    mathpls::vec2 Gravity = {0, -9.81f};
+    GravityFn Gravity = {{0, -9.81f}};
 };
 
 

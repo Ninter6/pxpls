@@ -65,7 +65,7 @@ public:
         rectRB.IsDynamic = false;
         
         m_World.AddRigidbody(&rectRB);
-        m_World.Gravity *= -3;
+        m_World.Gravity.g *= -3;
         
         m_World.AddSolver(&solver1);
         m_World.AddSolver(&solver2);
@@ -110,6 +110,20 @@ protected:
             pos *= .1f;
             
             addMass(pos);
+        }
+        if (IsMouseButtonDown(MOUSE_RIGHT_BUTTON)) {
+            auto mpos = GetMousePosition();
+            
+            mathpls::vec2 pos = {mpos.x - win_ext.x * .5f, mpos.y - win_ext.y * .5f};
+            pos *= .1f;
+            
+            m_World.Gravity.func = [=](const pxpls::Rigidbody* rb, mathpls::vec2& acc) {
+                auto d = pos - rb->Position();
+                auto r2 = d.length_squared();
+                acc += d / r2 * 514.f * (1 - std::exp(-r2 * 191.f));
+            };
+        } else if (IsMouseButtonReleased(MOUSE_RIGHT_BUTTON)) {
+            m_World.Gravity.func = nullptr;
         }
     }
     

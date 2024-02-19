@@ -22,9 +22,8 @@ namespace pxpls {
 
 UniformGird::UniformGird(const Bounds2D& bounds, float cellSize)
 : m_Bounds(bounds), m_CellSize(cellSize) {
-    const std::vector<std::vector<CollisionBody*>>& height{
-        static_cast<size_t>((bounds.max.y - bounds.min.y) / cellSize)
-    };
+    std::vector<std::vector<CollisionBody*>> height(
+        static_cast<size_t>((bounds.max.y - bounds.min.y) / cellSize));
     m_Grid.resize(static_cast<size_t>((bounds.max.x - bounds.min.x) / cellSize), height);
 }
 
@@ -49,12 +48,12 @@ void UniformGird::Update(const CollisionBody::Map& bodies) {
         auto offsetmax = (bounds.max - m_Bounds.min) / m_CellSize;
         
         mathpls::vec<size_t, 2> imin = {
-            std::clamp<size_t>(std::floor(offsetmin.x), 0, m_Grid.size() - 1),
-            std::clamp<size_t>(std::floor(offsetmin.y), 0, m_Grid.size() - 1)
+            std::clamp<size_t>(size_t(offsetmin.x), 0, m_Grid.size() - 1),
+            std::clamp<size_t>(size_t(offsetmin.y), 0, m_Grid.size() - 1)
         };
         mathpls::vec<size_t, 2> imax = {
-            std::clamp<size_t>(std::floor(offsetmax.x), 0, m_Grid.size() - 1),
-            std::clamp<size_t>(std::floor(offsetmax.y), 0, m_Grid.size() - 1)
+            std::clamp<size_t>(size_t(offsetmax.x), 0, m_Grid.size() - 1),
+            std::clamp<size_t>(size_t(offsetmax.y), 0, m_Grid.size() - 1)
         };
         
         for (size_t i = imin.x; i <= imax.x; ++i)
@@ -301,13 +300,22 @@ bool SpringWorld::RemoveSpring(const Link &link) {
     return m_Springs.erase(link);
 }
 
-void SpringWorld::ResolveSprings(float deltaTime) const {
+void SpringWorld::ResolveSprings() const {
     for (auto& [_, i] : m_Springs)
         i.CalcuForce();
 }
 
 void DynamicsWorld::AddRigidbody(Rigidbody *rigidbody) {
     AddCollisionBody(rigidbody);
+}
+
+GravityFn::GravityFn(mathpls::vec2 gravity) : g(gravity) {}
+
+GravityFn::GravityFn(Func calcuFunc) : func(calcuFunc) {}
+
+void GravityFn::operator()(const Rigidbody* rb, mathpls::vec2& acc) const {
+    if (func) func(rb, acc);
+    else acc += g;
 }
 
 void DynamicsWorld::MoveBodies(const float deltaTime, Evolution mode) const {
@@ -317,7 +325,7 @@ void DynamicsWorld::MoveBodies(const float deltaTime, Evolution mode) const {
         
         mathpls::vec2 a = rigidbody->Force * rigidbody->InvMass();
         if (rigidbody->TakesGravity)
-            a += Gravity; // Apply Gravity
+            Gravity(rigidbody, a); // Apply Gravity
         
         switch (mode) {
                 // semi-implicit Euler method
@@ -330,8 +338,6 @@ void DynamicsWorld::MoveBodies(const float deltaTime, Evolution mode) const {
                 // Velocity Verlet
             case Evolution::Verlet_Postion:
                 rigidbody->Position() += rigidbody->Velocity * deltaTime + a * .5f * deltaTime * deltaTime;
-                rigidbody->Velocity += a * deltaTime * .5f;
-                break;
             case Evolution::Verlet_Velocity:
                 rigidbody->Velocity += a * deltaTime * .5f;
                 break;
@@ -350,9 +356,9 @@ void DynamicsWorld::Step(float deltaTime) {
     // p(t+dt) = p(t) + v(t)dt + a(t) * dt^2 / 2
     // v(t+dt) = v(t) + (a(t+dt) + a(t)) * dt / 2
     // divided into two calculations
-    ResolveSprings(deltaTime);
+    ResolveSprings();
     MoveBodies(deltaTime, Evolution::Verlet_Postion);
-    ResolveSprings(deltaTime);
+    ResolveSprings();
     MoveBodies(deltaTime, Evolution::Verlet_Velocity);
 }
 
