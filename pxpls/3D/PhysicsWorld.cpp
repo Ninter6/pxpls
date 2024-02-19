@@ -7,6 +7,8 @@
 
 #include "PhysicsWorld.hpp"
 
+#include <algorithm>
+
 namespace pxpls {
 
 void PhysicsWorld::AddObject(PhysicalObj* obj) {
@@ -15,7 +17,8 @@ void PhysicsWorld::AddObject(PhysicalObj* obj) {
 
 void PhysicsWorld::RemoveObject(PhysicalObj* obj) {
     if (!obj) return;
-    std::erase(m_Objs, obj);
+    auto it = std::find(m_Objs.begin(), m_Objs.end(), obj);
+    if (it != m_Objs.end()) m_Objs.erase(it);
 }
 
 void PhysicsWorld::Update(float dt) const {

@@ -11,5 +11,9 @@ find_package(raylib REQUIRED)
 # library
 add_subdirectory(pxpls)
 
+option(PXPLS_BUILD_DEMO "build demo" off)
+
 # demo 2D
-add_subdirectory(demo2D)
+if (PXPLS_BUILD_DEMO)
+    add_subdirectory(demo2D)
+endif()

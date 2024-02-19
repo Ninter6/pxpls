@@ -333,6 +333,13 @@ template <unsigned int M> \
 vec(const vec<T, M>& o) : vec{0} { \
     for (int i = 0; i < min(N, M); i++) asArray[i] = o[i]; \
 } \
+template <unsigned int M, class...Args> \
+vec(const vec<T, M>& o, Args&&...args) : vec{0} { \
+static_assert(!sizeof...(args) || N - M >= sizeof...(args), "illegal number of parameters"); \
+    for (int i = 0; i < min(N, M); i++) asArray[i] = o[i]; \
+    T tmp[]{args...}; \
+    for (int i = 0; i < sizeof...(args); i++) asArray[min(N, M) + i] = tmp[i]; \
+} \
 auto& operator[](unsigned int n) {return this->asArray[n];} /* non-const */ \
 auto operator[](unsigned int n) const {return this->asArray[n];} \
 auto value_ptr() {return asArray;} /* non-const */ \
@@ -402,6 +409,8 @@ struct vec {
     
     VEC_MEM_FUNC_IMPL(N)
 };
+
+template <class T> struct vec<T, 0> {};
 
 template <class T>
 struct vec<T, 1> {
@@ -541,7 +550,7 @@ struct mat {
         for (int i = 0; i < min(W, H); i++)
             element[i][i] = a;
     }
-    constexpr mat(vec<T, H> e[W]) {
+    constexpr mat(const vec<T, H> (&e)[W]) {
         for (int i = 0; i < W; i++) element[i] = e[i];
     }
     
@@ -815,16 +824,16 @@ mat<T, 3, 3> rotate(angle_t angle, mat<T, 3, 3> ori = {}) {
 }
 
 template <class T>
-mat<T, 4, 4> rotate(vec<T, 3> axis, angle_t angle, mat<T, 3, 3> ori = {}) {
+mat<T, 4, 4> rotate(vec<T, 3> axis, angle_t angle, mat<T, 4, 4> ori = {}) {
     const T& x = axis.x, y = axis.y, z = axis.z;
     angle_t sa = sin(angle), ca = cos(angle);
     angle_t bca = 1 - ca;
     
     mat<T, 4, 4> r = {
-        vec<T, 4>{ca + x*x*bca, sa*z + bca*x*y, -sa*y + bca*x*z, 0},
-        vec<T, 4>{-sa*z + bca*x*y, ca + y*y*bca, sa*x + bca*y*z, 0},
-        vec<T, 4>{sa*y + bca*x*z, -sa*x + bca*y*z, ca + z*z*bca, 0},
-        vec<T, 4>{0, 0, 0, 1}
+        vec<T, 4>(ca + x*x*bca, sa*z + bca*x*y, -sa*y + bca*x*z, 0),
+        vec<T, 4>(-sa*z + bca*x*y, ca + y*y*bca, sa*x + bca*y*z, 0),
+        vec<T, 4>(sa*y + bca*x*z, -sa*x + bca*y*z, ca + z*z*bca, 0),
+        vec<T, 4>(0, 0, 0, 1)
     };
     
     return r * ori;
@@ -905,14 +914,16 @@ mat<T, 4, 4> rotate(qua<T> q){
 
 template <class T>
 mat<T, 4, 4> lookAt(vec<T, 3> eye, vec<T, 3> target, vec<T, 3> up){
-    vec<T, 4> d = (eye - target).normalized();
-    vec<T, 4> r = cross(up, d).normalized();
-    vec<T, 4> u = cross(d, r).normalized();
+    vec<T, 3> d = (eye - target).normalized();
+    vec<T, 3> r = cross(up, d).normalized();
+    vec<T, 3> u = cross(d, r).normalized();
     mat<T, 4, 4> m = {
-        r, u, d,
+        vec<T, 4>{r, -dot(r, eye)},
+        vec<T, 4>{u, -dot(u, eye)},
+        vec<T, 4>{d, -dot(d, eye)},
         vec<T, 4>{0, 0, 0, 1}
     };
-    return m.transposed() * translate(-eye);
+    return m.transposed();
 }
 
 template <class T>
@@ -928,23 +939,43 @@ mat<T, 4, 4> ortho(T l, T r, T b, T t){
 
 template <class T>
 mat<T, 4, 4> ortho(T l, T r, T b, T t, T n, T f){
+#ifndef MATHPLS_VULKAN
     mat<T, 4, 4> m = {
         vec<T, 4>{2/(r - l), 0, 0, 0},
         vec<T, 4>{0, 2/(t - b), 0, 0},
         vec<T, 4>{0, 0, 2/(n - f), 0},
         vec<T, 4>{(l+r)/(l-r), (b+t)/(b-t), (f+n)/(n-f), 1}
     };
+#else
+    mat<T, 4, 4> m;
+    m[0][0] = 2 / (r - l);
+    m[1][1] = 2 / (b - t);
+    m[2][2] = 1 / (f - n);
+    m[3][0] = -(r + l) / (r - l);
+    m[3][1] = -(b + t) / (b - t);
+    m[3][2] = -n / (f - n);
+#endif
     return m;
 }
 
 template <class T>
 mat<T, 4, 4> perspective(T fov, T asp, T near, T far){
+#ifndef MATHPLS_VULKAN
     mat<T, 4, 4> m = {
         vec<T, 4>{cot(fov/2)/asp, 0, 0, 0},
         vec<T, 4>{0, cot(fov/2),     0, 0},
         vec<T, 4>{0, 0, (far + near)/(near - far),-1},
         vec<T, 4>{0, 0, (2*far*near)/(near - far), 0}
     };
+#else
+    const T cotHalfFov = cot(fov / 2);
+    mat<T, 4, 4> m;
+    m[0][0] = cotHalfFov / asp;
+    m[1][1] = cotHalfFov;
+    m[2][2] = far / (far - near);
+    m[2][3] = 1;
+    m[3][2] = (far * near) / (near - far);
+#endif
     return m;
 }
 
