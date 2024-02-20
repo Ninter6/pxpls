@@ -9,6 +9,7 @@
 
 #include "mathpls.h"
 #include <array>
+#include <span>
 
 namespace pxpls {
 
@@ -45,6 +46,21 @@ struct Bounds {
 };
 
 float DistancePointPlane(const Point& pnt, const Plane& pln);
+
+/**
+ * \brief test if distance of the two is less than the radius of sphere
+ */
+bool IsPointInSphere(const Point& pnt, const Sphere& sph);
+
+/**
+ * \brief test if distance of the two is equal to the radius of sphere
+ */
+bool IsPointOnSphere(const Point& pnt, const Sphere& sph);
+
+/**
+ * \brief test if distance of the two is larger than the radius of sphere
+ */
+bool IsPointOutSphere(const Point& pnt, const Sphere& sph);
 
 /**
  * \brief test if absolute distance from sphere to plane is less than radius of sphere

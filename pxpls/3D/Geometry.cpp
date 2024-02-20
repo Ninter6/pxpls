@@ -53,6 +53,18 @@ float DistancePointPlane(const Point& pnt, const Plane& pln) {
     return mathpls::dot(pln.normal, c2p);
 }
 
+bool IsPointInSphere(const Point& pnt, const Sphere& sph) {
+    return LESS(mathpls::distance(pnt, sph.center), sph.radius);
+}
+
+bool IsPointOnSphere(const Point& pnt, const Sphere& sph) {
+    return EQUAL(mathpls::distance(pnt, sph.center), sph.radius);
+}
+
+bool IsPointOutSphere(const Point& pnt, const Sphere& sph) {
+    return LESS(sph.radius, mathpls::distance(pnt, sph.center));
+}
+
 bool IntersectSpherePlane(const Sphere& sph, const Plane& pln) {
     auto dis = std::abs(DistancePointPlane(sph.center, pln));
     return LESS_EQUAL(dis, sph.radius);
