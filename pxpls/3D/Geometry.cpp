@@ -20,13 +20,15 @@ namespace pxpls {
 
 Sphere::Sphere(const Point& center, float radius) : center(center), radius(radius) {}
 
-Plane::Plane(float d, const mathpls::vec3& n) : d2o(d), normal(n) {}
+Plane::Plane(const mathpls::vec4& v) : normal(v), D(v[3]) {}
 
-Plane::Plane(const Point& center, const mathpls::vec3& normal)
-: d2o(mathpls::dot(center, normal)), normal(normal) {}
+Plane::Plane(const mathpls::vec3& n, float d) : normal(n), D(d) {}
+
+Plane::Plane(const Point& p0, const mathpls::vec3& normal)
+: D(-mathpls::dot(p0, normal)), normal(normal) {}
 
 Point Plane::P() const {
-    return normal * d2o;
+    return normal * D;
 }
 
 Bounds::Bounds(const Point& min, const Point& max) : min(min), max(max) {}
@@ -49,8 +51,7 @@ std::array<Point, 8> Bounds::allVertices() const {
 }
 
 float DistancePointPlane(const Point& pnt, const Plane& pln) {
-    auto c2p = pnt - pln.P();
-    return mathpls::dot(pln.normal, c2p);
+    return mathpls::dot(pln.normal, pnt) + pln.D;
 }
 
 bool IsPointInSphere(const Point& pnt, const Sphere& sph) {

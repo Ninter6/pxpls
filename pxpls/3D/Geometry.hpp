@@ -25,13 +25,14 @@ struct Sphere {
 
 struct Plane {
     Plane() = default;
-    Plane(float distanceFromOrigin, const mathpls::vec3& normal);
-    Plane(const Point& center, const mathpls::vec3& normal);
+    Plane(const mathpls::vec4& v);
+    Plane(const mathpls::vec3& normal, float D);
+    Plane(const Point& p0, const mathpls::vec3& normal);
     
     Point P() const;
     
-    float d2o; // distance from origin
     mathpls::vec3 normal;
+    float D;
 };
 
 struct Bounds {

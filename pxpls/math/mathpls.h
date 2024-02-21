@@ -1035,7 +1035,7 @@ mat<T, 4, 4> perspective(T fov, T asp, T near, T far){
     };
 #else
     const T cotHalfFov = cot(fov / 2);
-    mat<T, 4, 4> m;
+    mat<T, 4, 4> m{0};
     m[0][0] = cotHalfFov / asp;
     m[1][1] = cotHalfFov;
     m[2][2] = far / (far - near);
