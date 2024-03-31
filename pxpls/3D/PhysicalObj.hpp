@@ -11,7 +11,7 @@
 #include <cassert>
 
 #include "Transform.hpp"
-#include "Collider.hpp"
+#include "Collision.hpp"
 #include "RigidBody.hpp"
 
 namespace pxpls {
@@ -24,7 +24,7 @@ public:
     PhysicalObj(PhysicalObj&&) = default;
     PhysicalObj& operator=(PhysicalObj&&) = default;
     
-    TransForm transform{};
+    Transform transform{};
     
     bool HasCollider() const;
     

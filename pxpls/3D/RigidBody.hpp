@@ -7,16 +7,23 @@
 
 #pragma once
 
-#include <iostream>
-#include "Collider.hpp"
+#include "Collision.hpp"
 
 namespace pxpls {
 
-struct RigidBody {
+struct RigidBody : CollisionBody {
+    RigidBody();
+    
+    float InvMass() const;
+    void ApplyForce(const mathpls::vec3& force);
+    
     float mass = 1.f;
-    float gravity = 1.f;
+    
+    mathpls::vec3 lastPostion{};
     mathpls::vec3 velocity{};
     mathpls::vec3 acceleration{0};
+    
+    bool takeGravity = false;
 };
 
 }
