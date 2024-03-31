@@ -48,6 +48,13 @@ struct Bounds {
 
 float DistancePointPlane(const Point& pnt, const Plane& pln);
 
+Point ProjectPointPlane(const Point& pnt, const Plane& pln);
+
+/**
+ * \brief find the intersection of three non parallel planes
+ */
+Point IntersectPlanes(const Plane& A, const Plane& B, const Plane& C);
+
 /**
  * \brief test if distance of the two is less than the radius of sphere
  */

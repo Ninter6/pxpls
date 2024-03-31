@@ -54,16 +54,30 @@ float DistancePointPlane(const Point& pnt, const Plane& pln) {
     return mathpls::dot(pln.normal, pnt) + pln.D;
 }
 
+Point ProjectPointPlane(const Point& pnt, const Plane& pln) {
+    return pnt - DistancePointPlane(pnt, pln) * pln.normal;
+}
+
+Point IntersectPlanes(const Plane& A, const Plane& B, const Plane& C) {
+    auto M = mathpls::mat3{
+         A.normal,
+         B.normal,
+         C.normal
+    }.transposed();
+    auto b = -mathpls::vec3{A.D, B.D, C.D};
+    return mathpls::inverse(M) * b;
+}
+
 bool IsPointInSphere(const Point& pnt, const Sphere& sph) {
-    return LESS(mathpls::distance(pnt, sph.center), sph.radius);
+    return LESS(mathpls::distance_quared(pnt, sph.center), sph.radius * sph.radius);
 }
 
 bool IsPointOnSphere(const Point& pnt, const Sphere& sph) {
-    return EQUAL(mathpls::distance(pnt, sph.center), sph.radius);
+    return EQUAL(mathpls::distance_quared(pnt, sph.center), sph.radius * sph.radius);
 }
 
 bool IsPointOutSphere(const Point& pnt, const Sphere& sph) {
-    return LESS(sph.radius, mathpls::distance(pnt, sph.center));
+    return LESS(sph.radius * sph.radius, mathpls::distance_quared(pnt, sph.center));
 }
 
 bool IntersectSpherePlane(const Sphere& sph, const Plane& pln) {
@@ -82,7 +96,8 @@ bool IsSphereBelowPlane(const Sphere& sph, const Plane& pln) {
 }
 
 bool IntersectSphereSphere(const Sphere& s1, const Sphere& s2) {
-    return LESS_EQUAL(mathpls::distance(s1.center, s2.center), s1.radius + s2.radius);
+    return LESS_EQUAL(mathpls::distance_quared(s1.center, s2.center),
+                      (s1.radius + s2.radius) * (s1.radius + s2.radius));
 }
 
 bool IntersectBoundsPlane(const Bounds& bnd, const Plane& pln) {
