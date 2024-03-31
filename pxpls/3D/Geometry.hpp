@@ -107,4 +107,6 @@ bool IsBoundsBelowPlane(const Bounds& bnd, const Plane& pln);
 
 Sphere BoundingSphereFromPoints(std::span<Point> points);
 
+Sphere BoundingSphereFromPointsFast(std::span<Point> points);
+
 }

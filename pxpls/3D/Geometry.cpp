@@ -10,6 +10,7 @@
 #include <cmath>
 #include <limits>
 #include <algorithm>
+#include <numeric>
 
 #define EPSILON std::numeric_limits<float>::epsilon()
 #define LESS(a, b) b - a > EPSILON
@@ -133,6 +134,8 @@ bool IsBoundsBelowPlane(const Bounds& bnd, const Plane& pln) {
 }
 
 Sphere BoundingSphereFromPoints(std::span<Point> points) {
+    if (points.size() == 0) return {};
+    
     pxpls::Sphere sphere{points[0], 0};
     pxpls::Point sp[4];
 
@@ -193,6 +196,20 @@ Sphere BoundingSphereFromPoints(std::span<Point> points) {
         }
     }
 
+    return sphere;
+}
+
+pxpls::Sphere BoundingSphereFromPointsFast(std::span<pxpls::Point> points) {
+    if (points.size() == 0) return {};
+    
+    pxpls::Sphere sphere{};
+    
+    sphere.center = std::reduce(points.begin(), points.end());
+    sphere.center /= points.size();
+    sphere.radius = mathpls::distance(*std::max_element(points.begin(), points.end(), [&](auto&& a, auto&& b){
+        return mathpls::distance_quared(a, sphere.center) < mathpls::distance_quared(b, sphere.center);
+    }), sphere.center);
+    
     return sphere;
 }
 
