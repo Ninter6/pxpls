@@ -105,4 +105,6 @@ bool IsBoundsAbovePlane(const Bounds& bnd, const Plane& pln);
  */
 bool IsBoundsBelowPlane(const Bounds& bnd, const Plane& pln);
 
+Sphere BoundingSphereFromPoints(std::span<Point> points);
+
 }
