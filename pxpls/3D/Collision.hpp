@@ -7,8 +7,8 @@
 
 #pragma once
 
-#include "mathpls.h"
 #include "Transform.hpp"
+#include "Geometry.hpp"
 
 #include <unordered_map>
 
@@ -45,6 +45,8 @@ struct Collider {
     virtual CollisionPoints TestCollision(const Transform& transform, const SphereCollider& collider, const Transform& colliderTransForm) const = 0;
     
     virtual CollisionPoints TestCollision(const Transform& transform, const PlaneCollider& collider, const Transform& colliderTransForm) const = 0;
+    
+    virtual Bounds GetBounds() const = 0;
 };
 
 
@@ -60,6 +62,8 @@ struct SphereCollider : public Collider {
     virtual CollisionPoints TestCollision(const Transform& transform, const SphereCollider& collider, const Transform& colliderTransForm) const override;
     
     virtual CollisionPoints TestCollision(const Transform& transform, const PlaneCollider& collider, const Transform& colliderTransForm) const override;
+    
+    virtual Bounds GetBounds() const override;
 };
 
 struct PlaneCollider : Collider {
@@ -75,6 +79,9 @@ struct PlaneCollider : Collider {
     virtual CollisionPoints TestCollision(const Transform& transform, const PlaneCollider& collider, const Transform& colliderTransForm) const override;
 };
 
+struct Collision;
+using CollisionCallback = std::function<void(const Collision&, float)>;
+
 struct CollisionBody {
     CollisionBody();
     
@@ -85,9 +92,15 @@ struct CollisionBody {
     Transform transform{};
     Collider* collider{nullptr};
     
+    CollisionCallback callback{nullptr};
+    
     bool IsTrigger = false;
     bool IsKinematic = false;
     bool IsDynamic = false;
+    
+    mathpls::vec3& Position();
+    const mathpls::vec3& Position() const;
+    void OnCollision(const Collision& collision, float dt) const;
     
 private:
     static id_t currentId;
@@ -100,4 +113,13 @@ struct Collision {
     CollisionPoints points;
 };
 
+using CollisionPair = std::pair<CollisionBody::id_t, CollisionBody::id_t>;
+
 }
+
+template <>
+struct std::hash<pxpls::CollisionPair> {
+    size_t operator()(const pxpls::CollisionPair& p) const {
+        return std::hash<size_t>{}(p.first) ^ std::hash<size_t>{}(p.second) ^ 114514;
+    }
+};

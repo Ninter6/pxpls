@@ -118,7 +118,7 @@ protected:
             pos *= .1f;
             
             m_World.Gravity.func = [=](const pxpls::Rigidbody* rb, mathpls::vec2& acc) {
-                auto d = pos - rb->Position();
+                auto d = (pos - rb->Position()).normalized();
                 auto r2 = d.length_squared();
                 acc += d / r2 * 514.f * (1 - std::exp(-r2 * 191.f));
             };

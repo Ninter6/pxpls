@@ -247,6 +247,7 @@ struct GravityFn {
     
     GravityFn() = default;
     GravityFn(mathpls::vec2 gravity);
+    GravityFn(float x, float y);
     GravityFn(Func calcuFunc);
     
     void operator()(const Rigidbody* rb, mathpls::vec2& acc) const;
@@ -277,6 +278,12 @@ public:
      */
     void AddRigidbody(Rigidbody* rigidbody);
 
+    /**
+     * \brief Removes a rigidbody from the world.
+     * \param rigidbody Rigidbody to remove.
+     */
+    void RemoveRigidbody(Rigidbody* rigidbody);
+    
     /**
      * \brief Moves all the rigidbodies.
      * \param deltaTime Time elapsed since the last frame.

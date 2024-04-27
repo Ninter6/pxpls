@@ -105,6 +105,13 @@ CollisionPoints SphereCollider::TestCollision(const Transform &transform, const 
     return algo::FindSpherePlaneCollisionPoints(*this, transform, collider, colliderTransForm);
 }
 
+Bounds SphereCollider::GetBounds() const {
+    return {
+        Center - Radius,
+        Center + Radius
+    };
+}
+
 PlaneCollider::PlaneCollider(mathpls::vec3 normal, mathpls::vec3 point) : Normal(normal), Point(point) {}
 
 CollisionPoints PlaneCollider::TestCollision(const Transform &transform, const Collider &collider, const Transform &colliderTransForm) const {
@@ -125,6 +132,17 @@ CollisionBody::CollisionBody() {
     id = currentId++;
 }
 
+mathpls::vec3& CollisionBody::Position() {
+    return transform.Position;
+}
 
+const mathpls::vec3& CollisionBody::Position() const {
+    return transform.Position;
+}
+
+void CollisionBody::OnCollision(const Collision& collision, float dt) const {
+    if (callback)
+        callback(collision, dt);
+}
 
 }

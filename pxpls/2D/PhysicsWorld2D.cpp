@@ -305,17 +305,23 @@ void SpringWorld::ResolveSprings() const {
         i.CalcuForce();
 }
 
-void DynamicsWorld::AddRigidbody(Rigidbody *rigidbody) {
-    AddCollisionBody(rigidbody);
-}
-
 GravityFn::GravityFn(mathpls::vec2 gravity) : g(gravity) {}
+
+GravityFn::GravityFn(float x, float y) : g(x, y) {}
 
 GravityFn::GravityFn(Func calcuFunc) : func(calcuFunc) {}
 
 void GravityFn::operator()(const Rigidbody* rb, mathpls::vec2& acc) const {
     if (func) func(rb, acc);
     else acc += g;
+}
+
+void DynamicsWorld::AddRigidbody(Rigidbody *rigidbody) {
+    AddCollisionBody(rigidbody);
+}
+
+void DynamicsWorld::RemoveRigidbody(Rigidbody* rigidbody) {
+    RemoveCollisionBody(rigidbody);
 }
 
 void DynamicsWorld::MoveBodies(const float deltaTime, Evolution mode) const {

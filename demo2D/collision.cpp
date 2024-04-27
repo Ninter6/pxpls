@@ -105,7 +105,7 @@ int main() {
     
     world.AddSolver(&solver1);
     world.AddSolver(&solver2);
-    world.Gravity = {0, 100};
+    world.Gravity = {0, 100.f};
     
     //启用反锯齿
     SetConfigFlags(FLAG_MSAA_4X_HINT);

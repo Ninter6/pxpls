@@ -51,6 +51,10 @@ std::array<Point, 8> Bounds::allVertices() const {
     };
 }
 
+bool Bounds::overlapping(const Bounds& b) const {
+    return LESS_EQUAL(min.x, b.max.x) && LESS_EQUAL(min.y, b.max.y) && LESS_EQUAL(min.z, b.max.z) && LESS(b.min.x, max.x) && LESS_EQUAL(b.min.y, max.y) && LESS_EQUAL(b.min.z, max.z);
+}
+
 float DistancePointPlane(const Point& pnt, const Plane& pln) {
     return mathpls::dot(pln.normal, pnt) + pln.D;
 }

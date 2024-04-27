@@ -44,6 +44,11 @@ struct Bounds {
     
     Point center() const;
     std::array<Point, 8> allVertices() const;
+    
+    void merge(const Point& p);
+    void merge(const Bounds& b);
+    
+    bool overlapping(const Bounds& b) const;
 };
 
 float DistancePointPlane(const Point& pnt, const Plane& pln);
