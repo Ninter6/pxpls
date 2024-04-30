@@ -15,5 +15,5 @@ option(PXPLS_BUILD_DEMO "build demo" off)
 
 # demo 2D
 if (PXPLS_BUILD_DEMO)
-    add_subdirectory(demo2D)
+    add_subdirectory(demo)
 endif()
