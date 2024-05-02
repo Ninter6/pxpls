@@ -11,6 +11,7 @@
 #include "Geometry.hpp"
 
 #include <unordered_map>
+#include <functional>
 
 namespace pxpls {
 

@@ -10,7 +10,7 @@ include_directories(${CMAKE_SOURCE_DIR})
 # library
 add_subdirectory(pxpls)
 
-option(PXPLS_BUILD_DEMO "build demo" off)
+option(PXPLS_BUILD_DEMO "build demo" on)
 
 # demo 2D
 if (PXPLS_BUILD_DEMO)

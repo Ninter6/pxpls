@@ -13,6 +13,7 @@
 #include "Geometry.hpp"
 
 #include <vector>
+#include <memory>
 
 namespace pxpls {
 

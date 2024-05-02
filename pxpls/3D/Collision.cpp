@@ -39,7 +39,7 @@ CollisionPoints FindSphereSphereCollisionPoints(const SphereCollider& a, const T
     const auto& ra = a.Radius * std::abs(ta.Scale.x), rb = b.Radius * std::abs(tb.Scale.x);
     
     auto b2a = oa - ob;
-    auto len = std::sqrtf(b2a.length_squared());
+    auto len = b2a.length();
     b2a.normalize();
     
     CollisionPoints rz;
