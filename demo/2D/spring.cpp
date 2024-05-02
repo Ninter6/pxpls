@@ -20,7 +20,7 @@ constexpr float dt = 3e-3f;
 class Entity {
 public:
     Entity(pxpls::DynamicsWorld& world, std::unique_ptr<pxpls::Collider>&& collider)
-    : World(world), Collider(std::move(collider)), Rigidbody(new pxpls::Rigidbody) {
+    : World(world), Collider(std::move(collider)), Rigidbody(new pxpls::Rigidbody2D) {
         Rigidbody->Collider = Collider.get();
         Rigidbody->IsKinematic = true;
         Rigidbody->Restitution = .5f;
@@ -38,7 +38,7 @@ public:
     
     pxpls::DynamicsWorld& World;
     std::unique_ptr<pxpls::Collider> Collider;
-    std::unique_ptr<pxpls::Rigidbody> Rigidbody;
+    std::unique_ptr<pxpls::Rigidbody2D> Rigidbody;
 };
 
 class Circle : virtual public Entity {
@@ -117,7 +117,7 @@ protected:
             mathpls::vec2 pos = {mpos.x - win_ext.x * .5f, mpos.y - win_ext.y * .5f};
             pos *= .1f;
             
-            m_World.Gravity.func = [=](const pxpls::Rigidbody* rb, mathpls::vec2& acc) {
+            m_World.Gravity.func = [=](const pxpls::Rigidbody2D* rb, mathpls::vec2& acc) {
                 auto d = (pos - rb->Position()).normalized();
                 auto r2 = d.length_squared();
                 acc += d / r2 * 514.f * (1 - std::exp(-r2 * 191.f));
@@ -143,7 +143,7 @@ protected:
             const auto& a = map.at(i.first);
             const auto& b = map.at(i.second);
             if (mathpls::distance_quared(a->Position(), b->Position()) < search_radius2) {
-                m_Links.emplace_back((pxpls::Rigidbody*)a, (pxpls::Rigidbody*)b);
+                m_Links.emplace_back((pxpls::Rigidbody2D*)a, (pxpls::Rigidbody2D*)b);
                 m_World.AddSpring({m_Links.back(), k, rest_len, dashpot});
             }
         }
@@ -166,7 +166,7 @@ private:
     std::vector<std::unique_ptr<Entity>> m_Entities;
     std::vector<pxpls::Link> m_Links;
     
-    pxpls::Rigidbody rectRB;
+    pxpls::Rigidbody2D rectRB;
     pxpls::AabbColloder rectCol;
     
 };

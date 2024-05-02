@@ -1,5 +1,9 @@
 #pragma once
 
+#ifndef NONUSE_STD_MATH
+#include <cmath>
+#endif
+
 namespace mathpls {
 
 namespace utils {
@@ -113,6 +117,40 @@ constexpr T abs(T a) {
 }
 
 template <class T>
+constexpr T e() {return 2.7182818284590452353602874713526625;}
+constexpr float e() {return 2.7182818284590452353602874713526625;}
+
+template <class T>
+constexpr T pi() {return 3.14159265358979323846264338327950288;}
+constexpr float pi() {return 3.14159265358979323846264338327950288;}
+
+template <class T>
+constexpr T inv_pi() {return 0.318309886183790671537767526745028724;}
+constexpr float inv_pi() {return 0.318309886183790671537767526745028724;}
+
+template <class T, class Tt>
+constexpr auto lerp(T a, T b, Tt t) {
+    return a * (Tt(1) - t) + b * t;
+}
+
+// following angle-related functions will ues this type
+using angle_t = double;
+
+template<class T = angle_t>
+constexpr T radians(T angle) {
+    return angle / T{180} * pi<T>();
+}
+
+// bushi
+constexpr angle_t fast_cos(angle_t a) {
+    constexpr angle_t ip2 = inv_pi<angle_t>() * inv_pi<angle_t>();
+    constexpr angle_t ip3 = ip2 * inv_pi<angle_t>();
+    return 1 + 4 * a*a*a * ip3 - 6 * a*a * ip2;
+}
+
+#ifdef NONUSE_STD_MATH
+
+template <class T>
 constexpr T floor(T a) {
     return static_cast<T>(static_cast<long>(a));
 }
@@ -125,33 +163,6 @@ constexpr T ceil(T a) {
 template <class T>
 constexpr T round(T a) {
     return floor(a + T{.5});
-}
-
-template <class T>
-constexpr T fract(T a) {
-    return a - floor(a);
-}
-
-template <class T>
-constexpr T e() {return 2.7182818284590452353602874713526625;}
-constexpr float e() {return 2.7182818284590452353602874713526625;}
-
-template <class T>
-constexpr T exp(T t) {
-    return pow(e<T>(), t);
-}
-
-template <class T>
-constexpr T pi() {return 3.14159265358979323846264338327950288;}
-constexpr float pi() {return 3.14159265358979323846264338327950288;}
-
-template <class T>
-constexpr T inv_pi() {return 0.318309886183790671537767526745028724;}
-constexpr float inv_pi() {return 0.318309886183790671537767526745028724;}
-
-template <class T, class Tt>
-constexpr auto lerp(T a, T b, Tt t) {
-    return a + (b - a) * t;
 }
 
 template <class T>
@@ -182,19 +193,9 @@ constexpr T pow(T ori, T a) {
     return r;
 }
 
-// following angle-related functions will ues this type
-using angle_t = double;
-
-template<class T = angle_t>
-constexpr T radians(T angle) {
-    return angle / T{180} * pi<T>();
-}
-
-// bushi
-constexpr angle_t fast_cos(angle_t a) {
-    constexpr angle_t ip2 = inv_pi<angle_t>() * inv_pi<angle_t>();
-    constexpr angle_t ip3 = ip2 * inv_pi<angle_t>();
-    return 1 + 4 * a*a*a * ip3 - 6 * a*a * ip2;
+template <class T>
+constexpr T exp(T t) {
+    return pow(e<T>(), t);
 }
 
 // 三角函数这里对精度和性能上做了很多取舍,目前基本上已经是最理想的情况了,可以保证小数点后4位没有误差
@@ -234,18 +235,6 @@ constexpr angle_t cos(angle_t a) {
 
 constexpr angle_t tan(angle_t a) {
     return sin(a) / cos(a);
-}
-
-constexpr angle_t cot(angle_t a) {
-    return cos(a) / sin(a);
-}
-
-constexpr angle_t sec(angle_t a) {
-    return 1 / cos(a);
-}
-
-constexpr angle_t csc(angle_t a) {
-    return 1 / sin(a);
 }
 
 constexpr angle_t atan2(angle_t y, angle_t x) {
@@ -288,10 +277,6 @@ constexpr angle_t acot2(angle_t x, angle_t y) {
     return atan2(y, x);
 }
 
-constexpr angle_t acot(angle_t a) {
-    return atan2(1, a);
-}
-
 constexpr angle_t asin2(angle_t y, angle_t m) {
     angle_t x = sqrt(m*m - y*y);
     return atan2(y, x);
@@ -324,6 +309,48 @@ constexpr angle_t acsc2(angle_t m, angle_t y) {
 
 constexpr angle_t acsc(angle_t a) {
     return acsc2(a, 1);
+}
+
+#else // NONUSE STD MATH
+
+using std::sqrt;
+using std::pow;
+using std::exp;
+using std::sin;
+using std::cos;
+using std::tan;
+using std::asin;
+using std::acos;
+using std::atan;
+using std::asin;
+using std::acos;
+using std::atan;
+using std::atan2;
+using std::floor;
+using std::ceil;
+using std::round;
+
+#endif
+
+constexpr angle_t cot(angle_t a) {
+    return cos(a) / sin(a);
+}
+
+constexpr angle_t sec(angle_t a) {
+    return 1 / cos(a);
+}
+
+constexpr angle_t csc(angle_t a) {
+    return 1 / sin(a);
+}
+
+constexpr angle_t acot(angle_t a) {
+    return atan2(1, a);
+}
+
+template <class T>
+constexpr T fract(T a) {
+    return a - floor(a);
 }
 
 // structures
@@ -678,8 +705,14 @@ struct qua{
         T asArray[4];
     };
     
+    operator vec<T, 4>() const {
+        return {x, y, z, w};
+    }
+    
     T length_squared() const {return w*w + x*x + y*y + z*z;}
     T length() const {return sqrt(length_squared());}
+    qua<T>& normalize() {return *this /= length();}
+    qua<T> normalized() const {return *this / length();}
     qua<T> conjugate() const {return {w, -vec<T, 3>{x, y, z}};}
     qua<T> inverse() const {return conjugate() / (length_squared());}
     
@@ -796,6 +829,11 @@ constexpr T dot(vec<T, N> v1, vec<T, N> v2) {
     T r{0};
     for (int i=0; i<N; i++) r += v1[i] * v2[i];
     return r;
+}
+
+template <class T>
+constexpr T dot(qua<T> a, qua<T> b) {
+    return a.w * b.w + a.x * b.x + a.y * b.y + a.z * b.z;
 }
 
 template <class T>
@@ -1005,7 +1043,7 @@ mat<T, 4, 4> ortho(T l, T r, T b, T t){
 
 template <class T>
 mat<T, 4, 4> ortho(T l, T r, T b, T t, T n, T f){
-#ifndef MATHPLS_VULKAN
+#ifndef MATHPLS_DEPTH_0_1
     mat<T, 4, 4> m = {
         vec<T, 4>{2/(r - l), 0, 0, 0},
         vec<T, 4>{0, 2/(t - b), 0, 0},
@@ -1013,7 +1051,7 @@ mat<T, 4, 4> ortho(T l, T r, T b, T t, T n, T f){
         vec<T, 4>{(l+r)/(l-r), (b+t)/(b-t), (f+n)/(n-f), 1}
     };
 #else
-    mat<T, 4, 4> m;
+    mat<T, 4, 4> m{T(0)};
     m[0][0] = 2 / (r - l);
     m[1][1] = 2 / (b - t);
     m[2][2] = 1 / (f - n);
@@ -1026,7 +1064,7 @@ mat<T, 4, 4> ortho(T l, T r, T b, T t, T n, T f){
 
 template <class T>
 mat<T, 4, 4> perspective(T fov, T asp, T near, T far){
-#ifndef MATHPLS_VULKAN
+#ifndef MATHPLS_DEPTH_0_1
     mat<T, 4, 4> m = {
         vec<T, 4>{cot(fov/2)/asp, 0, 0, 0},
         vec<T, 4>{0, cot(fov/2),     0, 0},
@@ -1035,7 +1073,7 @@ mat<T, 4, 4> perspective(T fov, T asp, T near, T far){
     };
 #else
     const T cotHalfFov = cot(fov / 2);
-    mat<T, 4, 4> m{0};
+    mat<T, 4, 4> m;
     m[0][0] = cotHalfFov / asp;
     m[1][1] = cotHalfFov;
     m[2][2] = far / (far - near);
@@ -1043,6 +1081,19 @@ mat<T, 4, 4> perspective(T fov, T asp, T near, T far){
     m[3][2] = (far * near) / (near - far);
 #endif
     return m;
+}
+
+template <class T>
+qua<T> nlerp(const qua<T>& a, const qua<T>& b, T t) {
+    return (a*(1-t)+b*t).normalized();
+}
+
+template <class T>
+qua<T> slerp(const qua<T>& a, const qua<T>& b, T t) {
+    auto g = acos(dot(a, b));
+    auto sg = sin(g);
+    
+    return a*(sin(g*(1-t))/sg) + b*(sin(g*t)/sg);
 }
 
 namespace random {
@@ -1124,10 +1175,15 @@ struct uniform_real_distribution {
 private:
     T a, b;
 };
+
+static mt19937 g_rand_engine{114514 ^ 1919810};
+
+inline void seed(unsigned int s) {
+    g_rand_engine = {s};
+}
  
 inline unsigned int rand() {
-    static mt19937 e{114514 ^ 1919810};
-    return e();
+    return g_rand_engine();
 }
 
 /**

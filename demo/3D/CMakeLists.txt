@@ -1,0 +1,2 @@
+add_executable(collision3D collision.cpp)
+target_link_libraries(collision3D pxpls raylib)

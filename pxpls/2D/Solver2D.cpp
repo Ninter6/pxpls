@@ -12,8 +12,8 @@ namespace pxpls {
 
 void ImpulseSolver::Solve(const std::vector<Collision> &collisions, float deltaTime) {
     for (const auto& [bodyA, bodyB, points] : collisions) {
-        Rigidbody* aBody = bodyA->IsDynamic ? (Rigidbody*)bodyA : nullptr;
-        Rigidbody* bBody = bodyB->IsDynamic ? (Rigidbody*)bodyB : nullptr;
+        Rigidbody2D* aBody = bodyA->IsDynamic ? (Rigidbody2D*)bodyA : nullptr;
+        Rigidbody2D* bBody = bodyB->IsDynamic ? (Rigidbody2D*)bodyB : nullptr;
         
         mathpls::vec2 aVel = aBody ? aBody->Velocity : mathpls::vec2{0};
         mathpls::vec2 bVel = bBody ? bBody->Velocity : mathpls::vec2{0};
@@ -78,8 +78,8 @@ void ImpulseSolver::Solve(const std::vector<Collision> &collisions, float deltaT
 
 void SmoothPositionSolver::Solve(const std::vector<Collision>& collisions, float deltaTime) {
     for (const auto& [bodyA, bodyB, points] : collisions) {
-        Rigidbody* aBody = bodyA->IsDynamic ? (Rigidbody*)bodyA : nullptr;
-        Rigidbody* bBody = bodyB->IsDynamic ? (Rigidbody*)bodyB : nullptr;
+        Rigidbody2D* aBody = bodyA->IsDynamic ? (Rigidbody2D*)bodyA : nullptr;
+        Rigidbody2D* bBody = bodyB->IsDynamic ? (Rigidbody2D*)bodyB : nullptr;
 
         const float aInvMass = aBody ? aBody->InvMass() : 0.0f;
         const float bInvMass = bBody ? bBody->InvMass() : 0.0f;

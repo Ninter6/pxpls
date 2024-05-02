@@ -11,18 +11,18 @@
 
 namespace pxpls {
 
-class Rigidbody;
+class Rigidbody2D;
 
 struct Link {
     Link() = default;
-    Link(Rigidbody* a, Rigidbody* b) : A(a), B(b) {}
+    Link(Rigidbody2D* a, Rigidbody2D* b) : A(a), B(b) {}
     
     bool operator==(const Link& o) const {
         return A == o.A && B == o.B;
     }
     
-    Rigidbody* A;
-    Rigidbody* B;
+    Rigidbody2D* A;
+    Rigidbody2D* B;
 };
 
 /**
@@ -34,7 +34,7 @@ struct Spring {
     Spring() = default;
     Spring(const Link& link, float k, float rest_len, float dashpot = 0)
     : Link(link), K(k), RestLength(rest_len), Dashpot(dashpot) {}
-    Spring(Rigidbody* a, Rigidbody* b, float k, float rest_len, float dashpot = 0)
+    Spring(Rigidbody2D* a, Rigidbody2D* b, float k, float rest_len, float dashpot = 0)
     : Link(a, b), K(k), RestLength(rest_len), Dashpot(dashpot) {}
     
     pxpls::Link Link;
@@ -44,8 +44,8 @@ struct Spring {
     
     float Dashpot; // Dashpot damping
     
-    Rigidbody* A() const {return this->Link.A;}
-    Rigidbody* B() const {return this->Link.B;}
+    Rigidbody2D* A() const {return this->Link.A;}
+    Rigidbody2D* B() const {return this->Link.B;}
     
     /**
      * \brief Use Hooke's law to calculate the force and apply to each rigidbody

@@ -243,14 +243,14 @@ private:
  */
 struct GravityFn {
     // Rigidbody(read-only), Acceleration
-    using Func = std::function<void(const Rigidbody*, mathpls::vec2&)>;
+    using Func = std::function<void(const Rigidbody2D*, mathpls::vec2&)>;
     
     GravityFn() = default;
     GravityFn(mathpls::vec2 gravity);
     GravityFn(float x, float y);
     GravityFn(Func calcuFunc);
     
-    void operator()(const Rigidbody* rb, mathpls::vec2& acc) const;
+    void operator()(const Rigidbody2D* rb, mathpls::vec2& acc) const;
     
     Func func = nullptr;
     mathpls::vec2 g{};
@@ -276,13 +276,13 @@ public:
      * \brief Adds a rigidbody in the world.
      * \param rigidbody Rigidbody to add.
      */
-    void AddRigidbody(Rigidbody* rigidbody);
+    void AddRigidbody(Rigidbody2D* rigidbody);
 
     /**
      * \brief Removes a rigidbody from the world.
      * \param rigidbody Rigidbody to remove.
      */
-    void RemoveRigidbody(Rigidbody* rigidbody);
+    void RemoveRigidbody(Rigidbody2D* rigidbody);
     
     /**
      * \brief Moves all the rigidbodies.

@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "Transform.hpp"
+#include "Transform.h"
 #include "Geometry.hpp"
 
 #include <unordered_map>
@@ -46,7 +46,7 @@ struct Collider {
     
     virtual CollisionPoints TestCollision(const Transform& transform, const PlaneCollider& collider, const Transform& colliderTransForm) const = 0;
     
-    virtual Bounds GetBounds() const = 0;
+    virtual Bounds GetBounds(const Transform& transform) const = 0;
 };
 
 
@@ -63,20 +63,25 @@ struct SphereCollider : public Collider {
     
     virtual CollisionPoints TestCollision(const Transform& transform, const PlaneCollider& collider, const Transform& colliderTransForm) const override;
     
-    virtual Bounds GetBounds() const override;
+    virtual Bounds GetBounds(const Transform& transform) const override;
 };
 
 struct PlaneCollider : Collider {
     PlaneCollider() = default;
-    PlaneCollider(mathpls::vec3 normal, mathpls::vec3 point);
+    PlaneCollider(const Plane& plane);
+    PlaneCollider(const mathpls::vec4& v);
+    PlaneCollider(const mathpls::vec3& normal, float D);
+    PlaneCollider(const Point& p0, const mathpls::vec3& normal);
     
-    mathpls::vec3 Normal, Point;
+    Plane plane;
     
     virtual CollisionPoints TestCollision(const Transform& transform, const Collider& collider, const Transform& colliderTransForm) const override;
 
     virtual CollisionPoints TestCollision(const Transform& transform, const SphereCollider& collider, const Transform& colliderTransForm) const override;
 
     virtual CollisionPoints TestCollision(const Transform& transform, const PlaneCollider& collider, const Transform& colliderTransForm) const override;
+    
+    virtual Bounds GetBounds(const Transform& transform) const override;
 };
 
 struct Collision;
@@ -100,6 +105,7 @@ struct CollisionBody {
     
     mathpls::vec3& Position();
     const mathpls::vec3& Position() const;
+    Bounds GetBounds() const;
     void OnCollision(const Collision& collision, float dt) const;
     
 private:

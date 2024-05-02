@@ -12,12 +12,12 @@
 
 #include <iostream>
 #include <random>
-#include "nova/src/nova/Tool/se_tools/setimer.h"
+#include "../tools/setimer.h"
 
 class Entity {
 public:
     Entity(pxpls::DynamicsWorld& world, std::unique_ptr<pxpls::Collider>&& collider)
-    : World(world), Collider(std::move(collider)), Rigidbody(new pxpls::Rigidbody) {
+    : World(world), Collider(std::move(collider)), Rigidbody(new pxpls::Rigidbody2D) {
         Rigidbody->Collider = Collider.get();
         Rigidbody->IsKinematic = true;
         Rigidbody->Restitution = .5f;
@@ -37,7 +37,7 @@ public:
     
     pxpls::DynamicsWorld& World;
     std::unique_ptr<pxpls::Collider> Collider;
-    std::unique_ptr<pxpls::Rigidbody> Rigidbody;
+    std::unique_ptr<pxpls::Rigidbody2D> Rigidbody;
 };
 
 class Circle : virtual public Entity {

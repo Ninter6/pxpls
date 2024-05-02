@@ -11,9 +11,9 @@
 
 namespace pxpls {
 
-class Rigidbody : public CollisionBody {
+class Rigidbody2D : public CollisionBody {
 public:
-    Rigidbody();
+    Rigidbody2D();
     
     float InvMass() const;
     

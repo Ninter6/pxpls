@@ -12,11 +12,11 @@
 
 namespace pxpls {
 
-Rigidbody::Rigidbody() : Mass(1), TakesGravity(true) {
+Rigidbody2D::Rigidbody2D() : Mass(1), TakesGravity(true) {
     IsDynamic = true;
 }
 
-float Rigidbody::InvMass() const {
+float Rigidbody2D::InvMass() const {
     if (Mass == 0) return 0;
     
     float invMass = 1 / Mass;
@@ -28,11 +28,11 @@ float Rigidbody::InvMass() const {
     return invMass;
 }
 
-mathpls::vec2& Rigidbody::ApplyForce(mathpls::vec2 addedForce) {
+mathpls::vec2& Rigidbody2D::ApplyForce(mathpls::vec2 addedForce) {
     return Force += addedForce;
 }
 
-mathpls::vec2 Rigidbody::SetPostion(const mathpls::vec2& pos) {
+mathpls::vec2 Rigidbody2D::SetPostion(const mathpls::vec2& pos) {
     LastPosition = Position();
     Position() = pos;
     return LastPosition;

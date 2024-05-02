@@ -16,13 +16,25 @@ void VerletSolver::Solve(const std::vector<Collision>& collisions, float deltaTi
         auto& obj_1 = *col.A;
         auto& obj_2 = *col.B;
         
+        if (!obj_1.IsDynamic && !obj_2.IsDynamic)
+            continue;
+        
         const auto& normal  = col.points.Normal;
         const auto& depth = col.points.Depth;
         
         const float delta  = response_coef * 0.5f * depth;
         const auto col_vec = normal * delta;
-        obj_1.Position() += col_vec;
-        obj_2.Position() -= col_vec;
+        
+        if (obj_1.IsDynamic) {
+            if (obj_2.IsDynamic) {
+                obj_1.Position() -= col_vec;
+                obj_2.Position() += col_vec;
+            } else {
+                obj_1.Position() -= col_vec * 2;
+            }
+        } else {
+            obj_2.Position() += col_vec * 2;
+        }
     }
 }
 

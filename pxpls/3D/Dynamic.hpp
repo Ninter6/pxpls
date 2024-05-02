@@ -34,7 +34,7 @@ struct Rigidbody : CollisionBody {
     mathpls::vec3 lastPostion{};
     mathpls::vec3 acceleration{0};
     
-    bool takeGravity = false;
+    bool takeGravity;
 };
 
 }

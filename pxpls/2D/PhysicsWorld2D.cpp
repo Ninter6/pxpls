@@ -311,23 +311,23 @@ GravityFn::GravityFn(float x, float y) : g(x, y) {}
 
 GravityFn::GravityFn(Func calcuFunc) : func(calcuFunc) {}
 
-void GravityFn::operator()(const Rigidbody* rb, mathpls::vec2& acc) const {
+void GravityFn::operator()(const Rigidbody2D* rb, mathpls::vec2& acc) const {
     if (func) func(rb, acc);
     else acc += g;
 }
 
-void DynamicsWorld::AddRigidbody(Rigidbody *rigidbody) {
+void DynamicsWorld::AddRigidbody(Rigidbody2D *rigidbody) {
     AddCollisionBody(rigidbody);
 }
 
-void DynamicsWorld::RemoveRigidbody(Rigidbody* rigidbody) {
+void DynamicsWorld::RemoveRigidbody(Rigidbody2D* rigidbody) {
     RemoveCollisionBody(rigidbody);
 }
 
 void DynamicsWorld::MoveBodies(const float deltaTime, Evolution mode) const {
     for (const auto& [_, body] : m_Bodies) {
         if (!body->IsDynamic) continue;
-        const auto rigidbody = (Rigidbody*)body;
+        const auto rigidbody = (Rigidbody2D*)body;
         
         mathpls::vec2 a = rigidbody->Force * rigidbody->InvMass();
         if (rigidbody->TakesGravity)

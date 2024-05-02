@@ -13,7 +13,7 @@ namespace pxpls {
 
 struct Transform {
     mathpls::vec3 Position;
-    mathpls::vec3 Scale;
+    mathpls::vec3 Scale= 1;
     mathpls::quat Rotation;
 };
 

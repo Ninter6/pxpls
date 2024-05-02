@@ -12,7 +12,7 @@
 
 namespace pxpls {
 
-Rigidbody::Rigidbody() {
+Rigidbody::Rigidbody() : mass(1), takeGravity(true) {
     IsDynamic = true;
 }
 

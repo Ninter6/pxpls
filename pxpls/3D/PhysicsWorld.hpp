@@ -51,6 +51,8 @@ class CollisionWorld {
 public:
     CollisionWorld(std::unique_ptr<PhaseGrid> phaseGrid);
     
+    PhaseGrid* GetGrid() const;
+    
     /**
      * \brief Set the bodies in the world
      * \param bodies Bodies to set.

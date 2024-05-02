@@ -26,7 +26,7 @@ void UniformGrid::Update(const CollisionBody::Map& bodies) {
     Clear();
     
     for (auto& [id, body] : bodies) {
-        auto bnd = body->collider->GetBounds();
+        auto bnd = body->GetBounds();
         
         if (!m_Bounds.overlapping(bnd)) continue;
         
@@ -51,8 +51,8 @@ void UniformGrid::Update(const CollisionBody::Map& bodies) {
         };
         
         for (int i = b.x; i <= e.x; i++)
-            for (int j = b.y; i <= e.y; i++)
-                for (int k = b.z; i <= e.z; i++)
+            for (int j = b.y; j <= e.y; j++)
+                for (int k = b.z; k <= e.z; k++)
                     m_Grid[i][j][k].push_back(body);
     }
 }
@@ -62,12 +62,14 @@ std::vector<CollisionPair> UniformGrid::GetCollisionPairs() const {
     
     for (auto& i : m_Grid)
         for (auto& j : i)
-            for (auto& k : j)
+            for (auto& k : j) {
+                if (k.size() < 2) continue;
                 for (int m = 0; m < k.size() - 1; m++)
                     for (int n = m + 1; n < k.size(); n++) {
                         if (k[m] < k[n]) s.emplace(k[m]->id, k[n]->id);
                         if (k[n] < k[m]) s.emplace(k[n]->id, k[m]->id);
                     }
+            }
     
     return {s.begin(), s.end()};
 }
@@ -82,6 +84,10 @@ void UniformGrid::Clear() {
 
 CollisionWorld::CollisionWorld(std::unique_ptr<PhaseGrid> phaseGrid)
 : m_Grid(std::move(phaseGrid)) {}
+
+PhaseGrid* CollisionWorld::GetGrid() const {
+    return m_Grid.get();
+}
 
 void CollisionWorld::SetCollisionBodies(const CollisionBody::Map& bodies) {
     m_Bodies = bodies;
