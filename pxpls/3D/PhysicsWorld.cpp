@@ -38,16 +38,16 @@ void UniformGrid::Update(const CollisionBody::Map& bodies) {
         sz.y = m_Grid[0].size();
         sz.z = m_Grid[0][0].size();
         
-        mathpls::uivec3 b{
-            std::clamp<unsigned int>(0, sz.x - 1, sz.x * (bnd.min.x - min.x) / len.x),
-            std::clamp<unsigned int>(0, sz.y - 1, sz.y * (bnd.min.y - min.y) / len.y),
-            std::clamp<unsigned int>(0, sz.z - 1, sz.z * (bnd.min.z - min.z) / len.z)
+        mathpls::vec3 b{
+            std::clamp<float>(sz.x * (bnd.min.x - min.x) / len.x, 0, sz.x - 1),
+            std::clamp<float>(sz.y * (bnd.min.y - min.y) / len.y, 0, sz.y - 1),
+            std::clamp<float>(sz.z * (bnd.min.z - min.z) / len.z, 0, sz.z - 1)
         };
         
-        mathpls::uivec3 e{
-            std::clamp<unsigned int>(0, sz.x - 1, sz.x * (bnd.max.x - min.x) / len.x),
-            std::clamp<unsigned int>(0, sz.y - 1, sz.y * (bnd.max.y - min.y) / len.y),
-            std::clamp<unsigned int>(0, sz.z - 1, sz.z * (bnd.max.z - min.z) / len.z)
+        mathpls::vec3 e{
+            std::clamp<float>(sz.x * (bnd.max.x - min.x) / len.x, 0, sz.x - 1),
+            std::clamp<float>(sz.y * (bnd.max.y - min.y) / len.y, 0, sz.y - 1),
+            std::clamp<float>(sz.z * (bnd.max.z - min.z) / len.z, 0, sz.z - 1)
         };
         
         for (int i = b.x; i <= e.x; i++)

@@ -26,7 +26,9 @@ public:
     
     Entity(Entity&&) = default;
     
-    virtual ~Entity() = default;
+    virtual ~Entity() {
+        World.RemoveRigidbody(Rigidbody.get());
+    }
     
     pxpls::Transform& Trans() const {
         return Rigidbody->transform;

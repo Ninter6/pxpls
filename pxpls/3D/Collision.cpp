@@ -63,18 +63,25 @@ CollisionPoints FindSpherePlaneCollisionPoints(const SphereCollider& a, const Tr
     //
     // P到平面距离    |d(P)|
     
-    const auto& oa = a.Center + ta.Position, ob = b.plane.P() + tb.Position;
-    const auto& bn = mathpls::mat3(mathpls::rotate(tb.Rotation)) * b.plane.normal;
+    const auto oa = a.Center + ta.Position, ob = b.plane.P() + tb.Position;
+    const auto ra = a.Radius * ta.Scale.x;
+    
+    auto bn = mathpls::mat3(mathpls::rotate(tb.Rotation)) * b.plane.normal;
     
     // 计算距离
-    const auto ds = mathpls::dot(bn, oa - ob);
+    auto ds = mathpls::dot(bn, oa - ob);
+    
+    if (ds < 0) {
+        bn *= -1.f;
+        ds = -ds;
+    }
     
     CollisionPoints rz;
     
-    rz.A = oa + (ds < 0 ? 1.f : -1.f) * bn * a.Radius * ta.Scale.x;
+    rz.A = oa - bn * ra;
     rz.B = oa - bn * ds;
-    rz.Depth = a.Radius - abs(ds);
-    rz.Normal = (rz.B - rz.A).normalized();
+    rz.Depth = ra - ds;
+    rz.Normal = bn;
     rz.HasCollision = rz.Depth > 0;
     
     return rz;
