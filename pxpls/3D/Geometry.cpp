@@ -8,6 +8,7 @@
 #include "Geometry.hpp"
 
 #include <cmath>
+#include <cstdint>
 #include <limits>
 #include <algorithm>
 #include <numeric>
