@@ -10,7 +10,7 @@
 
 namespace pxpls {
 
-void ImpulseSolver::Solve(const std::vector<Collision> &collisions, float deltaTime) {
+void ImpulseSolver::Solve(const std::vector<Collision2D> &collisions, float deltaTime) {
     for (const auto& [bodyA, bodyB, points] : collisions) {
         Rigidbody2D* aBody = bodyA->IsDynamic ? (Rigidbody2D*)bodyA : nullptr;
         Rigidbody2D* bBody = bodyB->IsDynamic ? (Rigidbody2D*)bodyB : nullptr;
@@ -76,7 +76,7 @@ void ImpulseSolver::Solve(const std::vector<Collision> &collisions, float deltaT
     }
 }
 
-void SmoothPositionSolver::Solve(const std::vector<Collision>& collisions, float deltaTime) {
+void SmoothPositionSolver::Solve(const std::vector<Collision2D>& collisions, float deltaTime) {
     for (const auto& [bodyA, bodyB, points] : collisions) {
         Rigidbody2D* aBody = bodyA->IsDynamic ? (Rigidbody2D*)bodyA : nullptr;
         Rigidbody2D* bBody = bodyB->IsDynamic ? (Rigidbody2D*)bodyB : nullptr;

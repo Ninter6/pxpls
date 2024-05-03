@@ -18,7 +18,7 @@ namespace pxpls {
 
 using Point2D = mathpls::vec2;
 
-struct CollisionPoints {
+struct CollisionPoints2D {
     /**
      * \brief the deepest point of obj A inside obj B
      */
@@ -47,7 +47,7 @@ struct CollisionPoints {
     /**
      * Swap A and B
      */
-    CollisionPoints Swaped() const;
+    CollisionPoints2D Swaped() const;
 };
 
 struct Bounds2D {
@@ -63,47 +63,47 @@ class CircleCollider;
 class LineCollider;
 class AabbColloder;
 
-class Collider {
+class Collider2D {
 public:
-    virtual ~Collider() = default;
+    virtual ~Collider2D() = default;
     
-    virtual CollisionPoints TestCollision(const Transform2D* transform,
-                                          const Collider* collider,
+    virtual CollisionPoints2D TestCollision(const Transform2D* transform,
+                                          const Collider2D* collider,
                                           const Transform2D* colTransform) const = 0;
     
-    virtual CollisionPoints TestCollision(const Transform2D* transform,
+    virtual CollisionPoints2D TestCollision(const Transform2D* transform,
                                           const CircleCollider* collider,
                                           const Transform2D* colTransform) const = 0;
     
-    virtual CollisionPoints TestCollision(const Transform2D* transform,
+    virtual CollisionPoints2D TestCollision(const Transform2D* transform,
                                           const LineCollider* collider,
                                           const Transform2D* colTransform) const = 0;
     
-    virtual CollisionPoints TestCollision(const Transform2D* transform,
+    virtual CollisionPoints2D TestCollision(const Transform2D* transform,
                                           const AabbColloder* collider,
                                           const Transform2D* colTransform) const = 0;
     
     virtual Bounds2D GetBounds(const Transform2D* transform) const = 0;
 };
 
-class CircleCollider : public Collider {
+class CircleCollider : public Collider2D {
 public:
     CircleCollider() = default;
     CircleCollider(Point2D center, float radius);
     
-    virtual CollisionPoints TestCollision(const Transform2D* transform,
-                                          const Collider* collider,
+    virtual CollisionPoints2D TestCollision(const Transform2D* transform,
+                                          const Collider2D* collider,
                                           const Transform2D* colTransform) const override;
     
-    virtual CollisionPoints TestCollision(const Transform2D* transform,
+    virtual CollisionPoints2D TestCollision(const Transform2D* transform,
                                           const CircleCollider* collider,
                                           const Transform2D* colTransform) const override;
     
-    virtual CollisionPoints TestCollision(const Transform2D* transform,
+    virtual CollisionPoints2D TestCollision(const Transform2D* transform,
                                           const LineCollider* collider,
                                           const Transform2D* colTransform) const override;
     
-    virtual CollisionPoints TestCollision(const Transform2D* transform,
+    virtual CollisionPoints2D TestCollision(const Transform2D* transform,
                                           const AabbColloder* collider,
                                           const Transform2D* colTransform) const override;
     
@@ -113,24 +113,24 @@ public:
     float Radius = 0;
 };
 
-class LineCollider : public Collider {
+class LineCollider : public Collider2D {
 public:
     LineCollider() = default;
     LineCollider(Point2D origin, mathpls::vec2 vec);
     
-    virtual CollisionPoints TestCollision(const Transform2D* transform,
-                                          const Collider* collider,
+    virtual CollisionPoints2D TestCollision(const Transform2D* transform,
+                                          const Collider2D* collider,
                                           const Transform2D* colTransform) const override;
     
-    virtual CollisionPoints TestCollision(const Transform2D* transform,
+    virtual CollisionPoints2D TestCollision(const Transform2D* transform,
                                           const CircleCollider* collider,
                                           const Transform2D* colTransform) const override;
     
-    virtual CollisionPoints TestCollision(const Transform2D* transform,
+    virtual CollisionPoints2D TestCollision(const Transform2D* transform,
                                           const LineCollider* collider,
                                           const Transform2D* colTransform) const override;
     
-    virtual CollisionPoints TestCollision(const Transform2D* transform,
+    virtual CollisionPoints2D TestCollision(const Transform2D* transform,
                                           const AabbColloder* collider,
                                           const Transform2D* colTransform) const override;
     
@@ -139,24 +139,24 @@ public:
     mathpls::vec2 Origin, Vector;
 };
 
-class AabbColloder : public Collider {
+class AabbColloder : public Collider2D {
 public:
     AabbColloder() = default;
     AabbColloder(Point2D pos, mathpls::vec2 ext);
     
-    virtual CollisionPoints TestCollision(const Transform2D* transform,
-                                          const Collider* collider,
+    virtual CollisionPoints2D TestCollision(const Transform2D* transform,
+                                          const Collider2D* collider,
                                           const Transform2D* colTransform) const override;
     
-    virtual CollisionPoints TestCollision(const Transform2D* transform,
+    virtual CollisionPoints2D TestCollision(const Transform2D* transform,
                                           const CircleCollider* collider,
                                           const Transform2D* colTransform) const override;
     
-    virtual CollisionPoints TestCollision(const Transform2D* transform,
+    virtual CollisionPoints2D TestCollision(const Transform2D* transform,
                                           const LineCollider* collider,
                                           const Transform2D* colTransform) const override;
     
-    virtual CollisionPoints TestCollision(const Transform2D* transform,
+    virtual CollisionPoints2D TestCollision(const Transform2D* transform,
                                           const AabbColloder* collider,
                                           const Transform2D* colTransform) const override;
     
@@ -167,19 +167,19 @@ public:
     mathpls::vec2 Position, Extent;
 };
 
-class CollisionBody;
+class CollisionBody2D;
 
-struct Collision {
-    CollisionBody* A;
-    CollisionBody* B;
-    CollisionPoints collisionPoints;
+struct Collision2D {
+    CollisionBody2D* A;
+    CollisionBody2D* B;
+    CollisionPoints2D collisionPoints;
 };
 
-using CollisionCallback = std::function<void(const Collision&, float)>;
+using CollisionCallback = std::function<void(const Collision2D&, float)>;
 
-class CollisionBody {
+class CollisionBody2D {
 public:
-    CollisionBody();
+    CollisionBody2D();
     
     /**
      * \brief Sets the collision callback function.
@@ -192,7 +192,7 @@ public:
      * \param collision Object representing the collision.
      * \param deltaTime The time elapsed since the last frame.
      */
-    void OnCollision(const Collision& collision, float deltaTime) const;
+    void OnCollision(const Collision2D& collision, float deltaTime) const;
     
     /**
      * \brief Gets the position of the body in the world.
@@ -208,21 +208,31 @@ public:
     Bounds2D GetBounds() const;
     
     using id_t = uint64_t;
-    using Map = std::unordered_map<id_t, CollisionBody*>;
+    using Map = std::unordered_map<id_t, CollisionBody2D*>;
     
     id_t id;
     Transform2D Transform{};
-    Collider* Collider{nullptr};
+    Collider2D* Collider{nullptr};
     
     bool IsTrigger = false;
     bool IsKinematic = false;
     bool IsDynamic = false;
     
-    std::function<void(const Collision&, float)> m_OnCollisions{nullptr};
+    std::function<void(const Collision2D&, float)> m_OnCollisions{nullptr};
     
 private:
     static id_t currentId;
     
 };
 
+using CollisionPair2D = std::pair<CollisionBody2D::id_t, CollisionBody2D::id_t>;
+
 }
+
+template<>
+struct std::hash<pxpls::CollisionPair2D> {
+    size_t operator()(const pxpls::CollisionPair2D& p) const {
+        auto h1 = std::hash<uint64_t>{}(p.first), h2 = std::hash<uint64_t>{}(p.second);
+        return h1 ^ ((h1 << 32) & (h2 >> 32));
+    }
+};

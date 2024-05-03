@@ -10,24 +10,16 @@
 #include <unordered_set>
 #include <cassert>
 
-template<>
-struct std::hash<pxpls::CollisionPair> {
-    size_t operator()(const pxpls::CollisionPair& p) const {
-        auto h1 = std::hash<uint64_t>{}(p.first), h2 = std::hash<uint64_t>{}(p.second);
-        return h1 ^ ((h1 << 32) & (h2 >> 32));
-    }
-};
-
 namespace pxpls {
 
-UniformGird::UniformGird(const Bounds2D& bounds, float cellSize)
+UniformGird2D::UniformGird2D(const Bounds2D& bounds, float cellSize)
 : m_Bounds(bounds), m_CellSize(cellSize) {
-    std::vector<std::vector<CollisionBody*>> height(
+    std::vector<std::vector<CollisionBody2D*>> height(
         static_cast<size_t>((bounds.max.y - bounds.min.y) / cellSize));
     m_Grid.resize(static_cast<size_t>((bounds.max.x - bounds.min.x) / cellSize), height);
 }
 
-void UniformGird::Update(const CollisionBody::Map& bodies) {
+void UniformGird2D::Update(const CollisionBody2D::Map& bodies) {
     // clear
     for (auto& gridCol : m_Grid)
         for (auto& gridCell : gridCol)
@@ -62,8 +54,8 @@ void UniformGird::Update(const CollisionBody::Map& bodies) {
     }
 }
 
-std::vector<CollisionPair> UniformGird::GetCollisionPairs() const {
-    std::unordered_set<CollisionPair> pairs;
+std::vector<CollisionPair2D> UniformGird2D::GetCollisionPairs() const {
+    std::unordered_set<CollisionPair2D> pairs;
     
     for (auto& gridCol : m_Grid)
         for (auto& gridCell : gridCol)
@@ -82,7 +74,7 @@ bool QuadTree::Node::IsLeaf() const {
     return children.empty(); // each node must have 0 or 4 children
 }
 
-bool QuadTree::Node::Insert(CollisionBody* body) {
+bool QuadTree::Node::Insert(CollisionBody2D* body) {
     if (IsLeaf() && bounds.IsOverlapping(body->GetBounds())) {
         bodies.push_back(body);
         return true;
@@ -106,7 +98,7 @@ void QuadTree::Node::Split() {
             c.Insert(i);
     
     // clear and delete
-    std::vector<CollisionBody*> empty{};
+    std::vector<CollisionBody2D*> empty{};
     bodies.swap(empty);
 }
 
@@ -173,7 +165,7 @@ const QuadTree::Iterator QuadTree::end() const {
     return {};
 }
 
-void QuadTree::Update(const CollisionBody::Map& bodies) {
+void QuadTree::Update(const CollisionBody2D::Map& bodies) {
     m_Root.reset(new Node(m_Root->bounds, 0));
     for (const auto& [_, body] : bodies)
         m_Root->Insert(body);
@@ -184,8 +176,8 @@ void QuadTree::Update(const CollisionBody::Map& bodies) {
     }
 }
 
-std::vector<CollisionPair> QuadTree::GetCollisionPairs() const {
-    std::unordered_set<CollisionPair> pairs;
+std::vector<CollisionPair2D> QuadTree::GetCollisionPairs() const {
+    std::unordered_set<CollisionPair2D> pairs;
     for (auto& node : *this)
         if (node.bodies.size() > 1)
             for (int i = 0; i < node.bodies.size() - 1; ++i)
@@ -199,52 +191,52 @@ std::vector<CollisionPair> QuadTree::GetCollisionPairs() const {
     return {pairs.begin(), pairs.end()};
 }
 
-CollisionWorld::CollisionWorld(std::unique_ptr<PhaseGrid> phaseGrid)
+CollisionWorld2D::CollisionWorld2D(std::unique_ptr<PhaseGrid2D> phaseGrid)
 : m_Grid(std::move(phaseGrid)) {}
 
-void CollisionWorld::SetCollisionBodies(const CollisionBody::Map& bodies) {
+void CollisionWorld2D::SetCollisionBodies(const CollisionBody2D::Map& bodies) {
     m_Bodies = bodies;
 }
 
-CollisionBody::Map CollisionWorld::GetCollisionBodies() const {
+CollisionBody2D::Map CollisionWorld2D::GetCollisionBodies() const {
     return m_Bodies;
 }
 
-void CollisionWorld::SetSolvers(const std::vector<Solver*>& solvers) {
+void CollisionWorld2D::SetSolvers(const std::vector<Solver2D*>& solvers) {
     m_Solvers = solvers;
 }
 
-void CollisionWorld::AddCollisionBody(CollisionBody* body) {
+void CollisionWorld2D::AddCollisionBody(CollisionBody2D* body) {
     if (body) m_Bodies.insert({body->id, body});
 }
 
-void CollisionWorld::RemoveCollisionBody(const CollisionBody* body) {
+void CollisionWorld2D::RemoveCollisionBody(const CollisionBody2D* body) {
     if (body) m_Bodies.erase(body->id);
 }
 
-void CollisionWorld::AddSolver(Solver* solver) {
+void CollisionWorld2D::AddSolver(Solver2D* solver) {
     if (solver) m_Solvers.push_back(solver);
 }
 
-void CollisionWorld::RemoveSolver(Solver* solver) {
+void CollisionWorld2D::RemoveSolver(Solver2D* solver) {
     auto it = std::find(m_Solvers.begin(), m_Solvers.end(), solver);
     if (it != m_Solvers.end()) {
         m_Solvers.erase(it);
     }
 }
 
-void CollisionWorld::SetCollisionCallback(const CollisionCallback& callback) {
+void CollisionWorld2D::SetCollisionCallback(const CollisionCallback& callback) {
     if (callback) m_OnCollision = callback;
 }
 
-void CollisionWorld::SolveCollisions(const std::vector<Collision>& collisions,
+void CollisionWorld2D::SolveCollisions(const std::vector<Collision2D>& collisions,
                                      float deltaTime) const {
     for (auto& solver : m_Solvers) {
         solver->Solve(collisions, deltaTime);
     }
 }
 
-void CollisionWorld::SendCollisionCallbacks(std::vector<Collision>& collisions,
+void CollisionWorld2D::SendCollisionCallbacks(std::vector<Collision2D>& collisions,
                                             float deltaTime) const {
     for (auto& collision : collisions) {
         if (m_OnCollision)
@@ -255,20 +247,20 @@ void CollisionWorld::SendCollisionCallbacks(std::vector<Collision>& collisions,
     }
 }
 
-void CollisionWorld::ResolveCollisions(float deltaTime) {
+void CollisionWorld2D::ResolveCollisions(float deltaTime) {
     // Vector for the collisions that have been detected
-    std::vector<Collision> collisions;
+    std::vector<Collision2D> collisions;
     
     // Vector for the collisions that have been caused by trigger colliders
-    std::vector<Collision> triggers;
+    std::vector<Collision2D> triggers;
     
     // Update the grid and find the object that can collide together
     m_Grid->Update(m_Bodies);
     const auto collisionPairs = m_Grid->GetCollisionPairs();
     
     for (auto& [firstId, secondId] : collisionPairs) {
-        CollisionBody* a = m_Bodies[firstId];
-        CollisionBody* b = m_Bodies[secondId];
+        CollisionBody2D* a = m_Bodies[firstId];
+        CollisionBody2D* b = m_Bodies[secondId];
         
         if (!a->Collider || !b->Collider) continue;
         
@@ -278,7 +270,7 @@ void CollisionWorld::ResolveCollisions(float deltaTime) {
         
         if (!points.HasCollision) continue;
         
-        Collision g{a, b, points};
+        Collision2D g{a, b, points};
         if (a->IsTrigger || b->IsTrigger) {
             triggers.push_back(g);
         } else {
@@ -292,39 +284,39 @@ void CollisionWorld::ResolveCollisions(float deltaTime) {
     SendCollisionCallbacks(triggers, deltaTime);
 }
 
-bool SpringWorld::AddSpring(const Spring& spring) {
+bool SpringWorld2D::AddSpring(const Spring2D& spring) {
     return m_Springs.emplace(spring.Link, spring).second;
 }
 
-bool SpringWorld::RemoveSpring(const Link &link) {
+bool SpringWorld2D::RemoveSpring(const Link2D &link) {
     return m_Springs.erase(link);
 }
 
-void SpringWorld::ResolveSprings() const {
+void SpringWorld2D::ResolveSprings() const {
     for (auto& [_, i] : m_Springs)
         i.CalcuForce();
 }
 
-GravityFn::GravityFn(mathpls::vec2 gravity) : g(gravity) {}
+GravityFn2D::GravityFn2D(mathpls::vec2 gravity) : g(gravity) {}
 
-GravityFn::GravityFn(float x, float y) : g(x, y) {}
+GravityFn2D::GravityFn2D(float x, float y) : g(x, y) {}
 
-GravityFn::GravityFn(Func calcuFunc) : func(calcuFunc) {}
+GravityFn2D::GravityFn2D(Func calcuFunc) : func(calcuFunc) {}
 
-void GravityFn::operator()(const Rigidbody2D* rb, mathpls::vec2& acc) const {
+void GravityFn2D::operator()(const Rigidbody2D* rb, mathpls::vec2& acc) const {
     if (func) func(rb, acc);
     else acc += g;
 }
 
-void DynamicsWorld::AddRigidbody(Rigidbody2D *rigidbody) {
+void DynamicsWorld2D::AddRigidbody(Rigidbody2D *rigidbody) {
     AddCollisionBody(rigidbody);
 }
 
-void DynamicsWorld::RemoveRigidbody(Rigidbody2D* rigidbody) {
+void DynamicsWorld2D::RemoveRigidbody(Rigidbody2D* rigidbody) {
     RemoveCollisionBody(rigidbody);
 }
 
-void DynamicsWorld::MoveBodies(const float deltaTime, Evolution mode) const {
+void DynamicsWorld2D::MoveBodies(const float deltaTime, Evolution mode) const {
     for (const auto& [_, body] : m_Bodies) {
         if (!body->IsDynamic) continue;
         const auto rigidbody = (Rigidbody2D*)body;
@@ -353,7 +345,7 @@ void DynamicsWorld::MoveBodies(const float deltaTime, Evolution mode) const {
     }
 }
 
-void DynamicsWorld::Step(float deltaTime) {
+void DynamicsWorld2D::Step(float deltaTime) {
     // COLLISION
     // no force generated
     ResolveCollisions(deltaTime);

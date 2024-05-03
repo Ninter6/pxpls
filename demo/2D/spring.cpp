@@ -19,7 +19,7 @@ constexpr float dt = 3e-3f;
 
 class Entity {
 public:
-    Entity(pxpls::DynamicsWorld& world, std::unique_ptr<pxpls::Collider>&& collider)
+    Entity(pxpls::DynamicsWorld2D& world, std::unique_ptr<pxpls::Collider2D>&& collider)
     : World(world), Collider(std::move(collider)), Rigidbody(new pxpls::Rigidbody2D) {
         Rigidbody->Collider = Collider.get();
         Rigidbody->IsKinematic = true;
@@ -38,14 +38,14 @@ public:
     
     virtual void draw() const = 0;
     
-    pxpls::DynamicsWorld& World;
-    std::unique_ptr<pxpls::Collider> Collider;
+    pxpls::DynamicsWorld2D& World;
+    std::unique_ptr<pxpls::Collider2D> Collider;
     std::unique_ptr<pxpls::Rigidbody2D> Rigidbody;
 };
 
 class Circle : virtual public Entity {
 public:
-    Circle(pxpls::DynamicsWorld& world, float radius)
+    Circle(pxpls::DynamicsWorld2D& world, float radius)
     : Entity(world, std::make_unique<pxpls::CircleCollider>(pxpls::Point2D{}, radius)) {}
     
     virtual void draw() const override {
@@ -61,7 +61,7 @@ public:
 class Game {
 public:
     Game()
-    : m_World(std::make_unique<pxpls::UniformGird>(pxpls::Bounds2D{-100, 100}, 10)),
+    : m_World(std::make_unique<pxpls::UniformGird2D>(pxpls::Bounds2D{-100, 100}, 10)),
     rectCol({win_ext.x * -.05f, win_ext.y * -.05f}, {win_ext.x * .1f, win_ext.y * .1f}) {
         rectRB.Collider = &rectCol;
         rectRB.IsDynamic = false;
@@ -151,7 +151,7 @@ protected:
         }
     }
     
-    static bool isMass(const pxpls::CollisionBody* e) {
+    static bool isMass(const pxpls::CollisionBody2D* e) {
         return e->Collider != nullptr; // link doesnt have colloder;
     }
     
@@ -164,9 +164,9 @@ private:
     pxpls::ImpulseSolver solver1;
     pxpls::SmoothPositionSolver solver2;
     
-    pxpls::DynamicsWorld m_World;
+    pxpls::DynamicsWorld2D m_World;
     std::vector<std::unique_ptr<Entity>> m_Entities;
-    std::vector<pxpls::Link> m_Links;
+    std::vector<pxpls::Link2D> m_Links;
     
     pxpls::Rigidbody2D rectRB;
     pxpls::AabbColloder rectCol;

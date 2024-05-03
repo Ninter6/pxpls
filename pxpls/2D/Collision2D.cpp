@@ -41,7 +41,7 @@ mathpls::vec2 LineIntersection(mathpls::vec2 pa, mathpls::vec2 da,
             (bb - ba) / (ka - kb) * ka + ba};
 }
 
-CollisionPoints FindCircleCilcleCollisionPoints(const CircleCollider* a,
+CollisionPoints2D FindCircleCilcleCollisionPoints(const CircleCollider* a,
                                                 const Transform2D* at,
                                                 const CircleCollider* b,
                                                 const Transform2D* bt) {
@@ -55,7 +55,7 @@ CollisionPoints FindCircleCilcleCollisionPoints(const CircleCollider* a,
     
     aTob.normalize();
     
-    CollisionPoints res{};
+    CollisionPoints2D res{};
     
     res.HasCollision = true;
     if (distence >= std::max(aR, bR)) {
@@ -84,7 +84,7 @@ CollisionPoints FindCircleCilcleCollisionPoints(const CircleCollider* a,
  * \param b the circle collider object
  * \param bt the transform of object b
  */
-CollisionPoints FindLineCilcleCollisionPoints(const LineCollider* a,
+CollisionPoints2D FindLineCilcleCollisionPoints(const LineCollider* a,
                                               const Transform2D* at,
                                               const CircleCollider* b,
                                               const Transform2D* bt) {
@@ -112,7 +112,7 @@ CollisionPoints FindLineCilcleCollisionPoints(const LineCollider* a,
     
     if (depth <= 0) return {}; // no collision happened
     
-    CollisionPoints res{};
+    CollisionPoints2D res{};
     
     res.HasCollision = true;
     res.A = foot + aPos;
@@ -123,7 +123,7 @@ CollisionPoints FindLineCilcleCollisionPoints(const LineCollider* a,
     return res;
 }
 
-CollisionPoints FindLineLineCollisionPoints(const LineCollider* a,
+CollisionPoints2D FindLineLineCollisionPoints(const LineCollider* a,
                                             const Transform2D* at,
                                             const LineCollider* b,
                                             const Transform2D* bt) {
@@ -145,7 +145,7 @@ CollisionPoints FindLineLineCollisionPoints(const LineCollider* a,
     
     auto perp = mathpls::perpendicular(closest, aVec);
     
-    CollisionPoints res;
+    CollisionPoints2D res;
     
     res.HasCollision = true;
     res.A = intersection;
@@ -156,7 +156,7 @@ CollisionPoints FindLineLineCollisionPoints(const LineCollider* a,
     return res;
 }
 
-CollisionPoints FindLineAabbCollisionPoints(const LineCollider* a,
+CollisionPoints2D FindLineAabbCollisionPoints(const LineCollider* a,
                                             const Transform2D* at,
                                             const AabbColloder* b,
                                             const Transform2D* bt) {
@@ -164,11 +164,11 @@ CollisionPoints FindLineAabbCollisionPoints(const LineCollider* a,
     return {};
 }
 
-CollisionPoints FindCircleAabbCollisionPoints(const CircleCollider* a,
+CollisionPoints2D FindCircleAabbCollisionPoints(const CircleCollider* a,
                                               const Transform2D* at,
                                               const AabbColloder* b,
                                               const Transform2D* bt) {
-    CollisionPoints res{};
+    CollisionPoints2D res{};
     for (const auto& i : b->GetSides()) {
         auto cp = FindLineCilcleCollisionPoints(&i, bt, a, at);
         if (cp.HasCollision && cp.Depth > res.Depth)
@@ -177,7 +177,7 @@ CollisionPoints FindCircleAabbCollisionPoints(const CircleCollider* a,
     return res;
 }
 
-CollisionPoints FindAabbAabbCollisionPoints(const AabbColloder* a,
+CollisionPoints2D FindAabbAabbCollisionPoints(const AabbColloder* a,
                                             const Transform2D* at,
                                             const AabbColloder* b,
                                             const Transform2D* bt) {
@@ -187,8 +187,8 @@ CollisionPoints FindAabbAabbCollisionPoints(const AabbColloder* a,
 
 }
 
-CollisionPoints CollisionPoints::Swaped() const {
-    CollisionPoints r = *this;
+CollisionPoints2D CollisionPoints2D::Swaped() const {
+    CollisionPoints2D r = *this;
     std::swap(r.A, r.B);
     r.Normal *= -1;
     return r;
@@ -202,25 +202,25 @@ bool Bounds2D::IsOverlapping(const Bounds2D& o) const {
 CircleCollider::CircleCollider(mathpls::vec2 center, float radius)
 : Center(center), Radius(radius) {}
 
-CollisionPoints CircleCollider::TestCollision(const Transform2D *transform,
-                                              const Collider *collider,
+CollisionPoints2D CircleCollider::TestCollision(const Transform2D *transform,
+                                              const Collider2D *collider,
                                               const Transform2D *colTransform) const {
     return collider->TestCollision(colTransform, this, transform).Swaped();
 }
 
-CollisionPoints CircleCollider::TestCollision(const Transform2D *transform,
+CollisionPoints2D CircleCollider::TestCollision(const Transform2D *transform,
                                               const CircleCollider *collider,
                                               const Transform2D *colTransform) const {
     return algo::FindCircleCilcleCollisionPoints(this, transform, collider, colTransform);
 }
 
-CollisionPoints CircleCollider::TestCollision(const Transform2D *transform,
+CollisionPoints2D CircleCollider::TestCollision(const Transform2D *transform,
                                               const LineCollider *collider,
                                               const Transform2D *colTransform) const {
     return algo::FindLineCilcleCollisionPoints(collider, colTransform, this, transform).Swaped();
 }
 
-CollisionPoints CircleCollider::TestCollision(const Transform2D *transform,
+CollisionPoints2D CircleCollider::TestCollision(const Transform2D *transform,
                                               const AabbColloder *collider,
                                               const Transform2D *colTransform) const {
     return algo::FindCircleAabbCollisionPoints(this, transform, collider, colTransform);
@@ -236,25 +236,25 @@ Bounds2D CircleCollider::GetBounds(const Transform2D* transform) const {
 LineCollider::LineCollider(mathpls::vec2 origin, mathpls::vec2 vec)
 : Origin(origin), Vector(vec) {}
 
-CollisionPoints LineCollider::TestCollision(const Transform2D *transform,
-                                            const Collider *collider,
+CollisionPoints2D LineCollider::TestCollision(const Transform2D *transform,
+                                            const Collider2D *collider,
                                             const Transform2D *colTransform) const {
     return collider->TestCollision(colTransform, this, transform).Swaped();
 }
 
-CollisionPoints LineCollider::TestCollision(const Transform2D *transform,
+CollisionPoints2D LineCollider::TestCollision(const Transform2D *transform,
                                             const CircleCollider *collider,
                                             const Transform2D *colTransform) const {
     return algo::FindLineCilcleCollisionPoints(this, transform, collider, colTransform);
 }
 
-CollisionPoints LineCollider::TestCollision(const Transform2D *transform,
+CollisionPoints2D LineCollider::TestCollision(const Transform2D *transform,
                                             const LineCollider *collider,
                                             const Transform2D *colTransform) const {
     return algo::FindLineLineCollisionPoints(this, transform, collider, colTransform);
 }
 
-CollisionPoints LineCollider::TestCollision(const Transform2D *transform,
+CollisionPoints2D LineCollider::TestCollision(const Transform2D *transform,
                                             const AabbColloder *collider,
                                             const Transform2D *colTransform) const {
     return algo::FindLineAabbCollisionPoints(this, transform, collider, colTransform);
@@ -276,25 +276,25 @@ AabbColloder::AabbColloder(mathpls::vec2 pos, mathpls::vec2 ext)
     assert(ext.x > 0 && ext.y > 0 && "invalid extent!");
 }
 
-CollisionPoints AabbColloder::TestCollision(const Transform2D *transform,
-                                            const Collider *collider,
+CollisionPoints2D AabbColloder::TestCollision(const Transform2D *transform,
+                                            const Collider2D *collider,
                                             const Transform2D *colTransform) const {
     return collider->TestCollision(colTransform, this, transform).Swaped();
 }
 
-CollisionPoints AabbColloder::TestCollision(const Transform2D *transform,
+CollisionPoints2D AabbColloder::TestCollision(const Transform2D *transform,
                                             const CircleCollider *collider,
                                             const Transform2D *colTransform) const {
     return algo::FindCircleAabbCollisionPoints(collider, colTransform, this, transform).Swaped();
 }
 
-CollisionPoints AabbColloder::TestCollision(const Transform2D *transform,
+CollisionPoints2D AabbColloder::TestCollision(const Transform2D *transform,
                                             const LineCollider *collider,
                                             const Transform2D *colTransform) const {
     return algo::FindLineAabbCollisionPoints(collider, colTransform, this, transform).Swaped();
 }
 
-CollisionPoints AabbColloder::TestCollision(const Transform2D *transform,
+CollisionPoints2D AabbColloder::TestCollision(const Transform2D *transform,
                                             const AabbColloder *collider,
                                             const Transform2D *colTransform) const {
     return algo::FindAabbAabbCollisionPoints(this, transform, collider, colTransform);
@@ -319,20 +319,20 @@ std::vector<LineCollider> AabbColloder::GetSides(const Transform2D *transform) c
     };
 }
 
-CollisionBody::id_t CollisionBody::currentId = 0;
+CollisionBody2D::id_t CollisionBody2D::currentId = 0;
 
-CollisionBody::CollisionBody() {
+CollisionBody2D::CollisionBody2D() {
     id = currentId++;
 }
 
-mathpls::vec2& CollisionBody::Position() {
+mathpls::vec2& CollisionBody2D::Position() {
     return Transform.Position;
 }
-const mathpls::vec2& CollisionBody::Position() const {
+const mathpls::vec2& CollisionBody2D::Position() const {
     return Transform.Position;
 }
 
-Bounds2D CollisionBody::GetBounds() const {
+Bounds2D CollisionBody2D::GetBounds() const {
     if (Collider) {
         return Collider->GetBounds(&Transform);
     } else {
@@ -340,11 +340,11 @@ Bounds2D CollisionBody::GetBounds() const {
     }
 }
 
-void CollisionBody::SetCollisionCallback(const CollisionCallback& callback) {
+void CollisionBody2D::SetCollisionCallback(const CollisionCallback& callback) {
     m_OnCollisions = callback;
 }
 
-void CollisionBody::OnCollision(const Collision& collision, float deltaTime) const {
+void CollisionBody2D::OnCollision(const Collision2D& collision, float deltaTime) const {
     if (m_OnCollisions) {
         m_OnCollisions(collision, deltaTime);
     }

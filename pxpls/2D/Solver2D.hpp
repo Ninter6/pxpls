@@ -11,31 +11,31 @@
 
 namespace pxpls {
 
-class Solver {
+class Solver2D {
 public:
-    virtual ~Solver() = default;
+    virtual ~Solver2D() = default;
     
     /**
      * \brief Solves the provided collisions.
      * \param collisions Collisions to solve.
      * \param deltaTime Time elapsed since the last frame.
      */
-    virtual void Solve(const std::vector<Collision>& collisions, float deltaTime) = 0;
+    virtual void Solve(const std::vector<Collision2D>& collisions, float deltaTime) = 0;
 };
 
-class ImpulseSolver : public Solver {
+class ImpulseSolver : public Solver2D {
 public:
     ImpulseSolver() = default;
     
-    virtual void Solve(const std::vector<Collision>& collisions, float deltaTime) override;
+    virtual void Solve(const std::vector<Collision2D>& collisions, float deltaTime) override;
 };
 
 /**
 * \brief A solver to smooth out collision with collider that are in a tower placement.
 */
-class SmoothPositionSolver : public Solver {
+class SmoothPositionSolver : public Solver2D {
 public:
-    virtual void Solve(const std::vector<Collision>& collisions, float deltaTime) override;
+    virtual void Solve(const std::vector<Collision2D>& collisions, float deltaTime) override;
 };
 
 }

@@ -11,7 +11,7 @@
 
 namespace pxpls {
 
-class Rigidbody2D : public CollisionBody {
+class Rigidbody2D : public CollisionBody2D {
 public:
     Rigidbody2D();
     

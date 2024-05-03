@@ -16,7 +16,7 @@
 
 class Entity {
 public:
-    Entity(pxpls::DynamicsWorld& world, std::unique_ptr<pxpls::Collider>&& collider)
+    Entity(pxpls::DynamicsWorld2D& world, std::unique_ptr<pxpls::Collider2D>&& collider)
     : World(world), Collider(std::move(collider)), Rigidbody(new pxpls::Rigidbody2D) {
         Rigidbody->Collider = Collider.get();
         Rigidbody->IsKinematic = true;
@@ -37,14 +37,14 @@ public:
     
     virtual void draw() const = 0;
     
-    pxpls::DynamicsWorld& World;
-    std::unique_ptr<pxpls::Collider> Collider;
+    pxpls::DynamicsWorld2D& World;
+    std::unique_ptr<pxpls::Collider2D> Collider;
     std::unique_ptr<pxpls::Rigidbody2D> Rigidbody;
 };
 
 class Circle : virtual public Entity {
 public:
-    Circle(pxpls::DynamicsWorld& world, float radius)
+    Circle(pxpls::DynamicsWorld2D& world, float radius)
     : Entity(world, std::make_unique<pxpls::CircleCollider>(pxpls::Point2D{}, radius)) {}
     
     virtual void draw() const override {
@@ -59,7 +59,7 @@ public:
 
 class Line : virtual public Entity {
 public:
-    Line(pxpls::DynamicsWorld& world, pxpls::Point2D ori, mathpls::vec2 vec)
+    Line(pxpls::DynamicsWorld2D& world, pxpls::Point2D ori, mathpls::vec2 vec)
     : Entity(world, std::make_unique<pxpls::LineCollider>(ori, vec)) {}
     
     virtual void draw() const override {
@@ -74,7 +74,7 @@ public:
 
 class AabbBox : virtual public Entity {
 public:
-    AabbBox(pxpls::DynamicsWorld& world, pxpls::Point2D pos, mathpls::vec2 ext)
+    AabbBox(pxpls::DynamicsWorld2D& world, pxpls::Point2D pos, mathpls::vec2 ext)
     : Entity(world, std::make_unique<pxpls::AabbColloder>(pos, ext)) {}
     
     virtual void draw() const override {
@@ -87,7 +87,7 @@ public:
 
 constexpr mathpls::uivec2 WinSize{800, 600};
 
-pxpls::DynamicsWorld world{std::make_unique<pxpls::QuadTree>(pxpls::Bounds2D{{-1000, -1000}, {1000, 1000}})};
+pxpls::DynamicsWorld2D world{std::make_unique<pxpls::QuadTree>(pxpls::Bounds2D{{-1000, -1000}, {1000, 1000}})};
 pxpls::ImpulseSolver solver1;
 pxpls::SmoothPositionSolver solver2;
 

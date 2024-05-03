@@ -12,7 +12,7 @@
 
 namespace pxpls {
 
-void Spring::CalcuForce() const {
+void Spring2D::CalcuForce() const {
     auto A2B = B()->Position() - A()->Position();
     auto dis = A2B.length();
     A2B.normalize();
