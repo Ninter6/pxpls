@@ -26,6 +26,8 @@ void UniformGrid::Update(const CollisionBody::Map& bodies) {
     Clear();
     
     for (auto& [id, body] : bodies) {
+        if (!body->collider) continue;
+
         auto bnd = body->GetBounds();
         
         if (!m_Bounds.overlapping(bnd)) continue;
