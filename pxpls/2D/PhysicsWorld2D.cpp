@@ -8,6 +8,7 @@
 #include "PhysicsWorld2D.hpp"
 
 #include <unordered_set>
+#include <algorithm>
 #include <cassert>
 
 namespace pxpls {
